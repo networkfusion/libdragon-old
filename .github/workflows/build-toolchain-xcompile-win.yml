@@ -35,6 +35,11 @@ jobs:
       - name: Build N64 MIPS GCC toolchain for windows
         run: |
           cd ./tools/
-          N64_INST=$HOME/n64 HOST=-x86_64-w64-mingw32 ./build-toolchain.sh
+          N64_INST=/usr/local/ HOST=x86_64-w64-mingw32 ./build-toolchain.sh
 
-# TODO: create artifact
+      # Publish Windows build artifacts to github Artifacts (not needed for local builds).
+      - name: Publish windows Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: gcc-toolchain-mips64-win64
+          path: /usr/local/
