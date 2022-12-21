@@ -1,0 +1,36 @@
+# Copyright (c) libdragon 2022
+# See LICENSE file in the project root for full license information.
+
+# This workflow will build the libdragon N64 GCC toolchain to keep it up-to-date.
+name: Build latest libdragon N64 MIPS GCC toolchain
+
+on:
+  # This action will take about 40 minutes to run! It is designed to only fire if the GCC toolchain build file changes.
+  push:
+  pull_request:
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+
+    steps:
+
+      - name: Install native system build dependencies
+        run: |
+          sudo apt-get install libmpfr-dev
+          sudo apt-get install texinfo
+          sudo apt-get install libmpc-dev
+          # If there are other dependencies, we should add them here and make sure the documentation is updated!
+
+      - uses: actions/checkout@v3
+        name: Checkout Code
+
+      - name: Build N64 MIPS GCC toolchain
+        run: |
+          export N64_INST=/usr/local`
+          cd /tools/
+          ./build-toolchain.sh
+
+# TODO: create .deb
