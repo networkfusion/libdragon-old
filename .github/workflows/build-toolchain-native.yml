@@ -30,7 +30,7 @@ jobs:
       - name: Build N64 MIPS GCC toolchain
         run: |
           export N64_INST=/usr/local
-          cd /tools/
+          cd ./tools/
           ./build-toolchain.sh
 
 # TODO: create .deb
