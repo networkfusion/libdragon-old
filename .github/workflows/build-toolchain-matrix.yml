@@ -17,7 +17,7 @@ jobs:
       matrix:
         include: [
           { builds-for: Windows-x86_64, install-location: /usr/local/n64/, host: x86_64-w64-mingw32 },
-          { builds-for: Linux-x86_64, , install-location: /usr/local/n64/, host: '' }
+          { builds-for: Linux-x86_64, install-location: /usr/local/n64/, host: '' }
         ]
 
     steps:
