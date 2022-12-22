@@ -14,6 +14,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+      matrix:
+       include: [
+         { build: Windows-x86_64, install-location: /usr/local/n64/, host: x86_64-w64-mingw32},
+         { build: Linux-x86_64, , install-location: /usr/local/n64/, host: },
+         { build: Linux-arm64, , install-location: /usr/local/n64/, host: }
+       ]
 
     steps:
 
@@ -25,6 +31,7 @@ jobs:
           # If there are other dependencies, we should add them here and make sure the documentation is updated!
 
       - name: Install x-compile system build dependencies
+        if: ${{ matrix.build == 'Windows-x86_64' }}
         run: |
           sudo apt-get install -y mingw-w64
           # If there are other dependencies, we should add them here and make sure the documentation is updated!
@@ -33,21 +40,19 @@ jobs:
         name: Checkout Code
 
       # Cache and restore dependencies instead of downloading them.
-      # TODO: does not clean out old ones!
       - uses: actions/cache@v3
         id: cache
         with:
           path: ['**/tar.gz', '**/tar.bz2']
           key: ${{ runner.os }}-downloads
 
-      - name: Build N64 MIPS GCC toolchain for windows
+      - name: Build N64 MIPS GCC toolchain for ${{ matrix.build }}
         run: |
           cd ./tools/
-          N64_INST=/usr/local/n64/ HOST=x86_64-w64-mingw32 ./build-toolchain.sh
+          N64_INST=${{ matrix.install-location }} HOST=${{ matrix.host }} ./build-toolchain.sh
 
-      # Publish Windows build artifacts to github Artifacts (not needed for local builds).
-      - name: Publish windows Build Artifacts
+      - name: Publish ${{ matrix.build }} Build Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: gcc-toolchain-mips64-win64
+          name: gcc-toolchain-mips64-${{ matrix.build }}
           path: /usr/local/n64/
