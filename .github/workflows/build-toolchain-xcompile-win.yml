@@ -37,7 +37,7 @@ jobs:
       - uses: actions/cache@v3
         id: cache
         with:
-          path: ['**/tar.gz', '**/tar.bz2']
+          path: '**/tar.gz', '**/tar.bz2'
           key: ${{ runner.os }}-downloads
 
       - name: Build N64 MIPS GCC toolchain for windows
