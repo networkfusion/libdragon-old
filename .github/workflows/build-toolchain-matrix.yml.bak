@@ -16,8 +16,8 @@ jobs:
       fail-fast: false
       matrix:
         include: [
-          { target-platform: Windows-x86_64, install-location: /usr/local/n64/, host: x86_64-w64-mingw32 },
-          { target-platform: Linux-x86_64, install-location: /usr/local/n64/, host: '' }
+          { target-platform: Windows-x86_64, host: x86_64-w64-mingw32 },
+          { target-platform: Linux-x86_64, host: '' }
         ]
 
     steps:
@@ -51,10 +51,15 @@ jobs:
       - name: Build N64 MIPS GCC toolchain for ${{ matrix.target-platform }}
         run: |
           cd ./tools/
-          N64_INST=${{ matrix.install-location }} HOST=${{ matrix.host }} ./build-toolchain.sh
+          N64_INST=${{ runner.temp }}/n64/ HOST=${{ matrix.host }} ./build-toolchain.sh
 
       - name: Publish ${{ matrix.target-platform }} Build Artifacts
         uses: actions/upload-artifact@v3
         with:
           name: gcc-toolchain-mips64-${{ matrixtarget-platform }}
-          path: /usr/local/n64/
+          path: ${{ runner.temp }}/n64/
+
+      - name: Create .deb package
+        if: ${{ matrix.target-platform == 'Linux-x86_64' }}
+        run: |
+          echo. TODO: Create a .deb package.
