@@ -23,7 +23,8 @@ jobs:
       - name: CI-Build
         run: |
           echo 'Running in MSYS2!'
-          # export N64_INST=${{ runner.temp }}/n64/
+          mkdir -p ${{ runner.temp }}/n64/
+          export N64_INST=${{ runner.temp }}/n64/
           cd ./tools/
           ./build-toolchain.sh
 

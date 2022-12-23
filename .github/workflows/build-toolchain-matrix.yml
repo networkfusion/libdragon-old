@@ -61,7 +61,7 @@ jobs:
           package: libdragon-gcc-toolchain
           package_root: ${{ runner.temp }}/n64/
           maintainer: 'N64Brew'
-          version: '0.0.1.${{ github.ref }}' # refs/tags/v*.*.*
+          version: '0.0.1' # refs/tags/v*.*.*
           arch: 'amd64'
 #          depends: 'libc6 (>= 2.2.1), git'
           desc: 'MIPS GCC toolchain for the N64.'
@@ -72,7 +72,7 @@ jobs:
           package: libdragon-gcc-toolchain
           package_root: ${{ runner.temp }}/n64/
           maintainer: 'N64Brew'
-          version: '0.0.1.${{ github.ref }}' # refs/tags/v*.*.*
+          version: '0.0.1' # refs/tags/v*.*.*
           arch: 'x86_64'
           desc: 'MIPS GCC toolchain for the N64.'
 
