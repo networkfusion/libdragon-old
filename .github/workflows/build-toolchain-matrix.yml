@@ -51,15 +51,22 @@ jobs:
       - name: Build N64 MIPS GCC toolchain for ${{ matrix.target-platform }}
         run: |
           cd ./tools/
-          N64_INST=${{ runner.temp }}/n64/ HOST=${{ matrix.host }} ./build-toolchain.sh
+          N64_INST=${{ runner.temp }}/n64/usr/local/ HOST=${{ matrix.host }} ./build-toolchain.sh
+
+      - name: Generate debian package
+        if: ${{ matrix.target-platform == 'Linux-x86_64' }}
+        uses: jiro4989/build-deb-action@v2
+        with:
+          package: libdragon-gcc-toolchain
+          package_root: ${{ runner.temp }}/n64/
+          maintainer: 'N64Brew'
+          version: '0.0.1' # ${{ github.ref }} # refs/tags/v*.*.*
+          arch: 'amd64'
+#          depends: 'libc6 (>= 2.2.1), git'
+          desc: 'MIPS GCC toolchain for the N64.'
 
       - name: Publish ${{ matrix.target-platform }} Build Artifacts
         uses: actions/upload-artifact@v3
         with:
           name: gcc-toolchain-mips64-${{ matrix.target-platform }}
-          path: ${{ runner.temp }}/n64/
-
-      - name: Create .deb package
-        if: ${{ matrix.target-platform == 'Linux-x86_64' }}
-        run: |
-          echo. TODO: Create a .deb package.
+          path: ${{ runner.temp }}
