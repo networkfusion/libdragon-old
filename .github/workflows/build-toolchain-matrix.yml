@@ -50,7 +50,7 @@ jobs:
 
       - name: Build N64 MIPS GCC toolchain for ${{ matrix.target-platform }}
         run: |
-          mkdir ${{ runner.temp }}/n64/usr/local/
+          mkdir -p ${{ runner.temp }}/n64/usr/local/
           cd ./tools/
           N64_INST=${{ runner.temp }}/n64/usr/local/ HOST=${{ matrix.host }} ./build-toolchain.sh
 
