@@ -56,7 +56,7 @@ jobs:
       - name: Publish ${{ matrix.target-platform }} Build Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: gcc-toolchain-mips64-${{ matrixtarget-platform }}
+          name: gcc-toolchain-mips64-${{ matrix.target-platform }}
           path: ${{ runner.temp }}/n64/
 
       - name: Create .deb package
