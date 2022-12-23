@@ -10,18 +10,17 @@ on:
   pull_request:
   
 jobs:
-  build:
+  build-toolchain:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include: [
-          { builds-for: Windows-x86_64, install-location: /usr/local/n64/, host: x86_64-w64-mingw32 },
-          { builds-for: Linux-x86_64, install-location: /usr/local/n64/, host: '' }
+          { target-platform: Windows-x86_64, install-location: /usr/local/n64/, host: x86_64-w64-mingw32 },
+          { target-platform: Linux-x86_64, install-location: /usr/local/n64/, host: '' }
         ]
 
     steps:
-
       - name: Install native system build dependencies
         run: |
           sudo apt-get install libmpfr-dev
@@ -30,7 +29,7 @@ jobs:
           # If there are other dependencies, we should add them here and make sure the documentation is updated!
 
       - name: Install x-compile system build dependencies
-        if: ${{ matrix.builds-for == 'Windows-x86_64' }}
+        if: ${{ matrix.target-platform == 'Windows-x86_64' }}
         run: |
           sudo apt-get install -y mingw-w64
           # If there are other dependencies, we should add them here and make sure the documentation is updated!
@@ -38,22 +37,24 @@ jobs:
       - uses: actions/checkout@v3
         name: Checkout Code
 
-      # Cache and restore dependencies instead of downloading them.
+      # Cache and restore dependencies instead of downloading them to increase build speed.
+      # TODO: will the cache ever expire?!
+      # Further research: https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows
       - uses: actions/cache@v3
         id: cache
         with:
           path: |
             **/tar.gz
             **/tar.bz2
-          key: ${{ runner.os }}-downloads
+          key: ${{ runner.os }}-dependency-downloads
 
-      - name: Build N64 MIPS GCC toolchain for ${{ matrix.builds-for }}
+      - name: Build N64 MIPS GCC toolchain for ${{ matrix.target-platform }}
         run: |
           cd ./tools/
           N64_INST=${{ matrix.install-location }} HOST=${{ matrix.host }} ./build-toolchain.sh
 
-      - name: Publish ${{ matrix.builds-for }} Build Artifacts
+      - name: Publish ${{ matrix.target-platform }} Build Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: gcc-toolchain-mips64-${{ matrix.builds-for }}
+          name: gcc-toolchain-mips64-${{ matrixtarget-platform }}
           path: /usr/local/n64/
