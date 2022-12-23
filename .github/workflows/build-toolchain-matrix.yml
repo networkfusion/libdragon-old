@@ -44,12 +44,13 @@ jobs:
         id: cache
         with:
           path: |
-            **/tar.gz
-            **/tar.bz2
+            **/*.tar.gz
+            **/*.tar.bz2
           key: ${{ runner.os }}-dependency-downloads
 
       - name: Build N64 MIPS GCC toolchain for ${{ matrix.target-platform }}
         run: |
+          mkdir ${{ runner.temp }}/n64/usr/local/
           cd ./tools/
           N64_INST=${{ runner.temp }}/n64/usr/local/ HOST=${{ matrix.host }} ./build-toolchain.sh
 
@@ -60,9 +61,19 @@ jobs:
           package: libdragon-gcc-toolchain
           package_root: ${{ runner.temp }}/n64/
           maintainer: 'N64Brew'
-          version: '0.0.1' # ${{ github.ref }} # refs/tags/v*.*.*
+          version: '0.0.1.${{ github.ref }}' # refs/tags/v*.*.*
           arch: 'amd64'
 #          depends: 'libc6 (>= 2.2.1), git'
+          desc: 'MIPS GCC toolchain for the N64.'
+
+      - name: Generate rpm package
+        uses: jiro4989/build-rpm-action@v2
+        with:
+          package: libdragon-gcc-toolchain
+          package_root: ${{ runner.temp }}/n64/
+          maintainer: 'N64Brew'
+          version: '0.0.1.${{ github.ref }}' # refs/tags/v*.*.*
+          arch: 'x86_64'
           desc: 'MIPS GCC toolchain for the N64.'
 
       - name: Publish ${{ matrix.target-platform }} Build Artifacts
