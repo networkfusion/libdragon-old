@@ -17,4 +17,6 @@ jobs:
       - name: CI-Build
         run: |
           echo 'Running in MSYS2!'
+          export N64_INST=/usr/local
+          cd ./tools/
           ./build-toolchain.sh
