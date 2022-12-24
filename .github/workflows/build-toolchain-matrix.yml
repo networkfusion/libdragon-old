@@ -57,8 +57,6 @@ jobs:
       - name: Generate debian package
         if: ${{ matrix.target-platform == 'Linux-x86_64' }}
         uses: jiro4989/build-deb-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           package: libdragon-gcc-toolchain
           package_root: ${{ runner.temp }}/n64/
@@ -66,11 +64,11 @@ jobs:
           version: '0.0.1' # TODO: align with GCC version
           arch: 'amd64'
           desc: 'MIPS GCC toolchain for the N64.'
+        continue-on-error: true
 
       - name: Generate rpm package
+        if: ${{ matrix.target-platform == 'Linux-x86_64' }}
         uses: jiro4989/build-rpm-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           package: libdragon-gcc-toolchain
           package_root: ${{ runner.temp }}/n64/
@@ -78,6 +76,7 @@ jobs:
           version: '0.0.1' # TODO: align with GCC version. rpm workflow cannot handle hyphens?!
           arch: 'x86_64'
           desc: 'MIPS GCC toolchain for the N64.'
+        continue-on-error: true
 
       - name: Publish ${{ matrix.target-platform }} Build Artifacts
         uses: actions/upload-artifact@v3
@@ -85,6 +84,6 @@ jobs:
           name: gcc-toolchain-mips64-${{ matrix.target-platform }}
           path: ${{ runner.temp }}
 
-      - name: Build N64 MIPS GCC toolchain for ${{ matrix.target-platform }}
+      - name: Uploading packages for ${{ matrix.target-platform }}
         run: |
           echo upload packages to somewhere they can be used!
