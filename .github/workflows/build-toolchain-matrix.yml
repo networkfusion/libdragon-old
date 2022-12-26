@@ -55,6 +55,7 @@ jobs:
         run: |
           cd ./tools/
           sudo GENERATE_LINUX_PACKAGES=true N64_INST=/usr/local/n64-brew/ HOST=${{ matrix.host }} ./build-toolchain.sh
+        continue-on-error: true
 
 
       - name: Publish ${{ matrix.target-platform }} Build Artifacts
