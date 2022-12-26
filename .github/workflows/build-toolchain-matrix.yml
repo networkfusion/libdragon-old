@@ -59,7 +59,7 @@ jobs:
         uses: jiro4989/build-deb-action@v2
         with:
           package: libdragon-gcc-toolchain
-          package_root: ${{ runner.temp }}/n64/
+          package_root: ${{ runner.temp }}/n64
           maintainer: 'N64Brew'
           version: '0.0.1' # TODO: align with GCC version
           arch: 'amd64'
@@ -71,7 +71,7 @@ jobs:
         uses: jiro4989/build-rpm-action@v2
         with:
           package: libdragon-gcc-toolchain
-          package_root: ${{ runner.temp }}/n64/
+          package_root: ${{ runner.temp }}/n64
           maintainer: 'N64Brew'
           version: '0.0.1' # TODO: align with GCC version. rpm workflow cannot handle hyphens?!
           arch: 'x86_64'
