@@ -190,7 +190,7 @@ pushd binutils_compile_target
     --disable-werror
 make -j "$JOBS"
 
-if [ "$GENERATE_PACKAGES" = "true" ];
+if [ "$GENERATE_PACKAGES" = "true" ]; then
   # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
   # $build_command=checkinstall --default -D --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --nodoc --strip
   # this will not work as sudo does not maintain the build variables. See here for a possible fix https://www.petefreitag.com/item/877.cfm
