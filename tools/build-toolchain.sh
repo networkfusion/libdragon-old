@@ -189,14 +189,18 @@ pushd binutils_compile_target
     --with-cpu=mips64vr4300 \
     --disable-werror
 make -j "$JOBS"
-# make install-strip || sudo make install-strip || su -c "make install-strip"
 
-# https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
-$build_command=checkinstall --default -D --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --nodoc --strip
-$build_command || sudo $build_command || su -c "$build_command"
-# sudo checkinstall --default -D --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --nodoc --strip
-# sudo mkdir -p /root/rpmbuild/SOURCES
-# sudo checkinstall --default -R --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --nodoc --strip --install=no --fstrans=yes
+if [ "$GENERATE_PACKAGES" = "true" ];
+  # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
+  # $build_command=checkinstall --default -D --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --nodoc --strip
+  # this will not work as sudo does not maintain the build variables. See here for a possible fix https://www.petefreitag.com/item/877.cfm
+  # $build_command || sudo $build_command || su -c "$build_command"
+  sudo checkinstall --default -D --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --nodoc --strip
+  # sudo mkdir -p /root/rpmbuild/SOURCES
+  # sudo checkinstall --default -R --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --nodoc --strip --install=no --fstrans=yes
+else
+  make install-strip || sudo make install-strip || su -c "make install-strip"
+fi
 popd
 
 # # Compile GCC for MIPS N64.
