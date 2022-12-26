@@ -190,7 +190,7 @@ pushd binutils_compile_target
     --disable-werror
 make -j "$JOBS"
 # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
-$build_command='checkinstall -y --default --pkgversion 0.0.1' #$BINUTILS_V --pkgname "n64-brew-libdragon-binutils-$BINUTILS_V" --maintainer "n64-brew"'
+$build_command='checkinstall -y -D --default --pkgversion "0.0.1"' #$BINUTILS_V --pkgname "n64-brew-libdragon-binutils-$BINUTILS_V" --maintainer "n64-brew"'
 $build_command || sudo $build_command || su -c "$build_command"
 popd
 
