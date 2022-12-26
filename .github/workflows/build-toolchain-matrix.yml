@@ -34,8 +34,11 @@ jobs:
           sudo apt-get install -y mingw-w64
           # If there are other dependencies, we should add them here and make sure the documentation is updated!
 
-      - uses: actions/checkout@v3
-        name: Checkout Code
+      - name: Checkout Code
+          uses: actions/checkout@v3
+          with:
+            fetch-depth: 1 # we only require the last check-in, unless we want to create a changelog.
+        
 
       # Cache and restore dependencies instead of downloading them to increase build speed.
       # TODO: will the cache ever expire?!
@@ -61,4 +64,4 @@ jobs:
           path: |
             /usr/local/n64-brew/**/*.deb
             ./tools/**/*.deb
-            /usr/local/n64-brew/**/*
+          #  /usr/local/n64-brew/**/*

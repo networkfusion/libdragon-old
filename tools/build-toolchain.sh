@@ -189,7 +189,9 @@ pushd binutils_compile_target
     --with-cpu=mips64vr4300 \
     --disable-werror
 make -j "$JOBS"
-checkinstall -y --default || sudo checkinstall -y --default || su -c "checkinstall -y --default"
+# https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
+$build_command = checkinstall -y --default --pkgname "n64-brew-libdragon-binutils-$BINUTILS_V" --pkgversion $BINUTILS_V --maintainer "n64-brew"
+$build_command || sudo $build_command || su -c "$build_command"
 popd
 
 # Compile GCC for MIPS N64.
