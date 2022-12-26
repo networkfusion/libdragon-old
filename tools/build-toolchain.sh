@@ -5,8 +5,8 @@
 
 # TODO: this check might fail in certain environments!
 if [ "$EUID" -ne 0 ]; then
-  echo "There will be issues if this script is run as a non elivated user."
-  echo "Please run with ROOT or SUDO permissions."
+  echo "There will likely be issues if this script is run as a non elivated user."
+  echo "It is advised to run this script with ROOT or SUDO permissions."
   # exit 1
 fi
 
@@ -198,12 +198,9 @@ pushd binutils_compile_target
 make -j "$JOBS"
 if [ $GENERATE_LINUX_PACKAGES && "$BUILD" == "$HOST" ]; then
     # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
-    # $build_command=checkinstall --default -D --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --nodoc --strip
-    # this will not work as sudo does not maintain the build variables. See here for a possible fix https://www.petefreitag.com/item/877.cfm
-    # $build_command || sudo $build_command || su -c "$build_command"
-    sudo checkinstall --default -D --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --strip
-    # sudo mkdir -p /root/rpmbuild/SOURCES
-    # sudo checkinstall --default -R --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --nodoc --strip --install=no --fstrans=yes
+    checkinstall --default -D --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --strip --nodoc
+    # mkdir -p /root/rpmbuild/SOURCES
+    # checkinstall --default -R --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --nodoc --strip --install=no --fstrans=yes
 else
     make install-strip || sudo make install-strip || su -c "make install-strip"
 fi
@@ -236,7 +233,7 @@ make all-target-libgcc -j "$JOBS"
 
 if [ $GENERATE_LINUX_PACKAGES && "$BUILD" == "$HOST" ]; then
     # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
-    sudo checkinstall --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-libgcc" --maintainer "n64brew"
+    checkinstall install-target-libgcc --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-libgcc" --maintainer "n64brew"
 else
     make install-target-libgcc || sudo make install-target-libgcc || su -c "make install-target-libgcc"
 fi
@@ -255,7 +252,7 @@ CFLAGS_FOR_TARGET="-DHAVE_ASSERT_FUNC -O2" ../"newlib-$NEWLIB_V"/configure \
 make -j "$JOBS"
 if [ $GENERATE_LINUX_PACKAGES ]; then
     # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
-    sudo env PATH="$PATH" checkinstall --default -D --pkgversion "$NEWLIB_V" --pkgname "n64brew-libdragon-newlib" --maintainer "n64brew"
+    env PATH="$PATH" checkinstall --default -D --pkgversion "$NEWLIB_V" --pkgname "n64brew-libdragon-newlib" --maintainer "n64brew"
 else
     make install || sudo env PATH="$PATH" make install || su -c "env PATH=\"$PATH\" make install"
 fi
@@ -268,7 +265,7 @@ if [ "$BUILD" == "$HOST" ]; then
     make all -j "$JOBS"
     if [ $GENERATE_LINUX_PACKAGES ]; then
         # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
-        sudo checkinstall --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-stdlibs" --maintainer "n64brew" --strip
+        checkinstall --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-stdlibs" --maintainer "n64brew" --strip
     else
         make install-strip || sudo make install-strip || su -c "make install-strip"
     fi
