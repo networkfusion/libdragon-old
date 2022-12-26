@@ -200,7 +200,7 @@ make -j "$JOBS"
 #     # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
 #     checkinstall --default -D --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --strip --nodoc
 #     # mkdir -p /root/rpmbuild/SOURCES
-#     # checkinstall --default -R --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --nodoc --strip --install=no --fstrans=yes
+#     
 # else
     make install-strip || sudo make install-strip || su -c "make install-strip"
 # fi
@@ -266,7 +266,13 @@ if [ "$BUILD" == "$HOST" ]; then
     if [ $GENERATE_LINUX_PACKAGES ]; then
         # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
         # It seems that this step overrides all previous packaging attempts, so we call it by a generic name here!
-        checkinstall --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-gcc-toolchain" --maintainer "n64brew" --strip --nodoc --copyright "(c) 2012 DragonMinded and libDragon Contributors."
+        $PACKAGE_COMMON_PARAMS='--default --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-gcc-toolchain" --maintainer "n64brew" --strip' # --nodoc --copyright "(c) 2012 DragonMinded and libDragon Contributors."'
+        # --pkgrelease 0.0.1 # TODO: is this possible to set?
+
+        # Generate .deb package.
+        checkinstall -D $PACKAGE_COMMON_PARAMS
+        # Generate .rpm package.
+        # checkinstall -R $PACKAGE_COMMON_PARAMS --install=no --fstrans=yes
     else
         make install-strip || sudo make install-strip || su -c "make install-strip"
     fi
