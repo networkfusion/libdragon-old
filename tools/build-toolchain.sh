@@ -192,7 +192,7 @@ make -j "$JOBS"
 # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
 # $build_command='checkinstall --default -D --pkgversion "0.0.1" ' #$BINUTILS_V --pkgname "n64-brew-libdragon-binutils-$BINUTILS_V" --maintainer "n64-brew"'
 # $build_command || sudo $build_command || su -c "$build_command"
-sudo checkinstall -y -D --pkgversion "$BINUTILS_V"
+sudo checkinstall --default -D --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --nodoc --strip
 popd
 
 # # Compile GCC for MIPS N64.
