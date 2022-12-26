@@ -190,139 +190,139 @@ pushd binutils_compile_target
     --disable-werror
 make -j "$JOBS"
 # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
-# $build_command='checkinstall -y -D --pkgversion "0.0.1" --default' #$BINUTILS_V --pkgname "n64-brew-libdragon-binutils-$BINUTILS_V" --maintainer "n64-brew"'
+# $build_command='checkinstall --default -D --pkgversion "0.0.1" ' #$BINUTILS_V --pkgname "n64-brew-libdragon-binutils-$BINUTILS_V" --maintainer "n64-brew"'
 # $build_command || sudo $build_command || su -c "$build_command"
-sudo checkinstall -y -D --pkgversion "0.0.1"
+sudo checkinstall -y -D --pkgversion "$BINUTILS_V"
 popd
 
-# Compile GCC for MIPS N64.
-# We need to build the C++ compiler to build the target libstd++ later.
-mkdir -p gcc_compile_target
-pushd gcc_compile_target
-../"gcc-$GCC_V"/configure "${GCC_CONFIGURE_ARGS[@]}" \
-    --prefix="$CROSS_PREFIX" \
-    --target="$TARGET" \
-    --with-arch=vr4300 \
-    --with-tune=vr4300 \
-    --enable-languages=c,c++ \
-    --without-headers \
-    --disable-libssp \
-    --enable-multilib \
-    --disable-shared \
-    --with-gcc \
-    --with-newlib \
-    --disable-threads \
-    --disable-win32-registry \
-    --disable-nls \
-    --disable-werror \
-    --with-system-zlib
-make all-gcc -j "$JOBS"
-make install-gcc || sudo make install-gcc || su -c "make install-gcc"
-make all-target-libgcc -j "$JOBS"
-make install-target-libgcc || sudo make install-target-libgcc || su -c "make install-target-libgcc"
-popd
+# # Compile GCC for MIPS N64.
+# # We need to build the C++ compiler to build the target libstd++ later.
+# mkdir -p gcc_compile_target
+# pushd gcc_compile_target
+# ../"gcc-$GCC_V"/configure "${GCC_CONFIGURE_ARGS[@]}" \
+#     --prefix="$CROSS_PREFIX" \
+#     --target="$TARGET" \
+#     --with-arch=vr4300 \
+#     --with-tune=vr4300 \
+#     --enable-languages=c,c++ \
+#     --without-headers \
+#     --disable-libssp \
+#     --enable-multilib \
+#     --disable-shared \
+#     --with-gcc \
+#     --with-newlib \
+#     --disable-threads \
+#     --disable-win32-registry \
+#     --disable-nls \
+#     --disable-werror \
+#     --with-system-zlib
+# make all-gcc -j "$JOBS"
+# make install-gcc || sudo make install-gcc || su -c "make install-gcc"
+# make all-target-libgcc -j "$JOBS"
+# make install-target-libgcc || sudo make install-target-libgcc || su -c "make install-target-libgcc"
+# popd
 
-# Compile newlib for target.
-mkdir -p newlib_compile_target
-pushd newlib_compile_target
-CFLAGS_FOR_TARGET="-DHAVE_ASSERT_FUNC -O2" ../"newlib-$NEWLIB_V"/configure \
-    --prefix="$CROSS_PREFIX" \
-    --target="$TARGET" \
-    --with-cpu=mips64vr4300 \
-    --disable-threads \
-    --disable-libssp \
-    --disable-werror
-make -j "$JOBS"
-make install || sudo env PATH="$PATH" make install || su -c "env PATH=\"$PATH\" make install"
-popd
+# # Compile newlib for target.
+# mkdir -p newlib_compile_target
+# pushd newlib_compile_target
+# CFLAGS_FOR_TARGET="-DHAVE_ASSERT_FUNC -O2" ../"newlib-$NEWLIB_V"/configure \
+#     --prefix="$CROSS_PREFIX" \
+#     --target="$TARGET" \
+#     --with-cpu=mips64vr4300 \
+#     --disable-threads \
+#     --disable-libssp \
+#     --disable-werror
+# make -j "$JOBS"
+# make install || sudo env PATH="$PATH" make install || su -c "env PATH=\"$PATH\" make install"
+# popd
 
-# For a standard cross-compiler, the only thing left is to finish compiling the target libraries
-# like libstd++. We can continue on the previous GCC build target.
-if [ "$BUILD" == "$HOST" ]; then
-    pushd gcc_compile_target
-    make all -j "$JOBS"
-    checkinstall -y --default || sudo checkinstall -y --default || su -c "checkinstall -y --default"
-    popd
-else
-    # Compile HOST->TARGET binutils
-    # NOTE: we pass --without-msgpack to workaround a bug in Binutils, introduced
-    # with this commit: https://sourceware.org/git/?p=binutils-gdb.git;a=commit;h=2952f10cd79af4645222f124f28c7928287d8113
-    # This is due to the fact that pkg-config is used to activate compilation with msgpack
-    # but that it is not correct in the case of a canadian cross.
-    echo "Compiling binutils-$BINUTILS_V for foreign host"
-    mkdir -p binutils_compile_host
-    pushd binutils_compile_host
-    ../"binutils-$BINUTILS_V"/configure \
-        --prefix="$INSTALL_PATH" \
-        --build="$BUILD" \
-        --host="$HOST" \
-        --target="$TARGET" \
-        --disable-werror \
-        --without-msgpack
-    make -j "$JOBS"
-    checkinstall -y --default || sudo checkinstall -y --default || su -c "checkinstall -y --default"
-    popd
+# # For a standard cross-compiler, the only thing left is to finish compiling the target libraries
+# # like libstd++. We can continue on the previous GCC build target.
+# if [ "$BUILD" == "$HOST" ]; then
+#     pushd gcc_compile_target
+#     make all -j "$JOBS"
+#     checkinstall -y --default || sudo checkinstall -y --default || su -c "checkinstall -y --default"
+#     popd
+# else
+#     # Compile HOST->TARGET binutils
+#     # NOTE: we pass --without-msgpack to workaround a bug in Binutils, introduced
+#     # with this commit: https://sourceware.org/git/?p=binutils-gdb.git;a=commit;h=2952f10cd79af4645222f124f28c7928287d8113
+#     # This is due to the fact that pkg-config is used to activate compilation with msgpack
+#     # but that it is not correct in the case of a canadian cross.
+#     echo "Compiling binutils-$BINUTILS_V for foreign host"
+#     mkdir -p binutils_compile_host
+#     pushd binutils_compile_host
+#     ../"binutils-$BINUTILS_V"/configure \
+#         --prefix="$INSTALL_PATH" \
+#         --build="$BUILD" \
+#         --host="$HOST" \
+#         --target="$TARGET" \
+#         --disable-werror \
+#         --without-msgpack
+#     make -j "$JOBS"
+#     checkinstall -y --default || sudo checkinstall -y --default || su -c "checkinstall -y --default"
+#     popd
 
-    # Compile HOST->TARGET gcc
-    mkdir -p gcc_compile
-    pushd gcc_compile
-    CFLAGS_FOR_TARGET="-O2" CXXFLAGS_FOR_TARGET="-O2" \
-        ../"gcc-$GCC_V"/configure \
-        --prefix="$INSTALL_PATH" \
-        --target="$TARGET" \
-        --build="$BUILD" \
-        --host="$HOST" \
-        --disable-werror \
-        --with-arch=vr4300 \
-        --with-tune=vr4300 \
-        --enable-languages=c,c++ \
-        --with-newlib \
-        --enable-multilib \
-        --with-gcc \
-        --disable-libssp \
-        --disable-shared \
-        --disable-threads \
-        --disable-win32-registry \
-        --disable-nls
-    make all-target-libgcc -j "$JOBS"
-    make install-target-libgcc || sudo make install-target-libgcc || su -c "make install-target-libgcc"
-    popd
+#     # Compile HOST->TARGET gcc
+#     mkdir -p gcc_compile
+#     pushd gcc_compile
+#     CFLAGS_FOR_TARGET="-O2" CXXFLAGS_FOR_TARGET="-O2" \
+#         ../"gcc-$GCC_V"/configure \
+#         --prefix="$INSTALL_PATH" \
+#         --target="$TARGET" \
+#         --build="$BUILD" \
+#         --host="$HOST" \
+#         --disable-werror \
+#         --with-arch=vr4300 \
+#         --with-tune=vr4300 \
+#         --enable-languages=c,c++ \
+#         --with-newlib \
+#         --enable-multilib \
+#         --with-gcc \
+#         --disable-libssp \
+#         --disable-shared \
+#         --disable-threads \
+#         --disable-win32-registry \
+#         --disable-nls
+#     make all-target-libgcc -j "$JOBS"
+#     make install-target-libgcc || sudo make install-target-libgcc || su -c "make install-target-libgcc"
+#     popd
 
-    # Compile newlib for target.
-    mkdir -p newlib_compile
-    pushd newlib_compile
-    CFLAGS_FOR_TARGET="-DHAVE_ASSERT_FUNC -O2" ../"newlib-$NEWLIB_V"/configure \
-        --prefix="$INSTALL_PATH" \
-        --target="$TARGET" \
-        --with-cpu=mips64vr4300 \
-        --disable-threads \
-        --disable-libssp \
-        --disable-werror
-    make -j "$JOBS"
-    make install || sudo env PATH="$PATH" make install || su -c "env PATH=\"$PATH\" make install"
-    popd
+#     # Compile newlib for target.
+#     mkdir -p newlib_compile
+#     pushd newlib_compile
+#     CFLAGS_FOR_TARGET="-DHAVE_ASSERT_FUNC -O2" ../"newlib-$NEWLIB_V"/configure \
+#         --prefix="$INSTALL_PATH" \
+#         --target="$TARGET" \
+#         --with-cpu=mips64vr4300 \
+#         --disable-threads \
+#         --disable-libssp \
+#         --disable-werror
+#     make -j "$JOBS"
+#     make install || sudo env PATH="$PATH" make install || su -c "env PATH=\"$PATH\" make install"
+#     popd
 
-    # Finish compiling GCC
-    mkdir -p gcc_compile
-    pushd gcc_compile
-    make all -j "$JOBS"
-    checkinstall -y --default || sudo checkinstall -y --default || su -c "checkinstall -y --default"
-    popd
-fi
+#     # Finish compiling GCC
+#     mkdir -p gcc_compile
+#     pushd gcc_compile
+#     make all -j "$JOBS"
+#     checkinstall -y --default || sudo checkinstall -y --default || su -c "checkinstall -y --default"
+#     popd
+# fi
 
-if [ "$MAKE_V" != "" ]; then
-    pushd "make-$MAKE_V"
-    ./configure \
-      --prefix="$INSTALL_PATH" \
-        --disable-largefile \
-        --disable-nls \
-        --disable-rpath \
-        --build="$BUILD" \
-        --host="$HOST"
-    make -j "$JOBS"
-    checkinstall -y --default || sudo checkinstall -y --default || su -c "checkinstall -y --default"
-    popd
-fi
+# if [ "$MAKE_V" != "" ]; then
+#     pushd "make-$MAKE_V"
+#     ./configure \
+#       --prefix="$INSTALL_PATH" \
+#         --disable-largefile \
+#         --disable-nls \
+#         --disable-rpath \
+#         --build="$BUILD" \
+#         --host="$HOST"
+#     make -j "$JOBS"
+#     checkinstall -y --default || sudo checkinstall -y --default || su -c "checkinstall -y --default"
+#     popd
+# fi
 
 # Final message
 echo
