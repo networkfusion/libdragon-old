@@ -16,7 +16,6 @@ jobs:
       fail-fast: false
       matrix:
         include: [
-          { target-platform: Windows-x86_64, host: x86_64-w64-mingw32 },
           { target-platform: Linux-x86_64, host: '' }
         ]
 
@@ -26,6 +25,7 @@ jobs:
           sudo apt-get install libmpfr-dev
           sudo apt-get install texinfo
           sudo apt-get install libmpc-dev
+          sudo apt-get install checkinstall
           # If there are other dependencies, we should add them here and make sure the documentation is updated!
 
       - name: Install x-compile system build dependencies
@@ -50,39 +50,18 @@ jobs:
 
       - name: Build N64 MIPS GCC toolchain for ${{ matrix.target-platform }}
         run: |
-          mkdir -p ${{ runner.temp }}/n64/usr/local/
+          mkdir -p ${{ runner.temp }}/n64/
           cd ./tools/
-          N64_INST=${{ runner.temp }}/n64/usr/local/ HOST=${{ matrix.host }} ./build-toolchain.sh
+          N64_INST=${{ runner.temp }}/n64/ HOST=${{ matrix.host }} ./build-toolchain.sh
 
-      - name: Generate debian package
-        if: ${{ matrix.target-platform == 'Linux-x86_64' }}
-        uses: jiro4989/build-deb-action@v2
-        with:
-          package: libdragon-gcc-toolchain
-          package_root: ${{ runner.temp }}/n64
-          maintainer: 'N64Brew'
-          version: '0.0.1' # TODO: align with GCC version
-          arch: 'amd64'
-          desc: 'MIPS GCC toolchain for the N64.'
-        continue-on-error: true
-
-      - name: Generate rpm package
-        if: ${{ matrix.target-platform == 'Linux-x86_64' }}
-        uses: jiro4989/build-rpm-action@v2
-        with:
-          package: libdragon-gcc-toolchain
-          package_root: ${{ runner.temp }}/n64
-          maintainer: 'N64Brew'
-          version: '0.0.1' # TODO: align with GCC version. rpm workflow cannot handle hyphens?!
-          arch: 'x86_64'
-          desc: 'MIPS GCC toolchain for the N64.'
-        continue-on-error: true
 
       - name: Publish ${{ matrix.target-platform }} Build Artifacts
         uses: actions/upload-artifact@v3
         with:
           name: gcc-toolchain-mips64-${{ matrix.target-platform }}
-          path: ${{ runner.temp }}
+          path: |
+            ${{ runner.temp }}/**/*.deb
+            /**/*.deb
 
       - name: Uploading packages for ${{ matrix.target-platform }}
         run: |

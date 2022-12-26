@@ -189,7 +189,7 @@ pushd binutils_compile_target
     --with-cpu=mips64vr4300 \
     --disable-werror
 make -j "$JOBS"
-make install-strip || sudo make install-strip || su -c "make install-strip"
+checkinstall -y --default || sudo checkinstall -y --default || su -c "checkinstall -y --default"
 popd
 
 # Compile GCC for MIPS N64.
@@ -238,7 +238,7 @@ popd
 if [ "$BUILD" == "$HOST" ]; then
     pushd gcc_compile_target
     make all -j "$JOBS"
-    make install-strip || sudo make install-strip || su -c "make install-strip"
+    checkinstall -y --default || sudo checkinstall -y --default || su -c "checkinstall -y --default"
     popd
 else
     # Compile HOST->TARGET binutils
@@ -257,7 +257,7 @@ else
         --disable-werror \
         --without-msgpack
     make -j "$JOBS"
-    make install-strip || sudo make install-strip || su -c "make install-strip"
+    checkinstall -y --default || sudo checkinstall -y --default || su -c "checkinstall -y --default"
     popd
 
     # Compile HOST->TARGET gcc
@@ -303,7 +303,7 @@ else
     mkdir -p gcc_compile
     pushd gcc_compile
     make all -j "$JOBS"
-    make install-strip || sudo make install-strip || su -c "make install-strip"
+    checkinstall -y --default || sudo checkinstall -y --default || su -c "checkinstall -y --default"
     popd
 fi
 
@@ -317,7 +317,7 @@ if [ "$MAKE_V" != "" ]; then
         --build="$BUILD" \
         --host="$HOST"
     make -j "$JOBS"
-    make install-strip || sudo make install-strip || su -c "make install-strip"
+    checkinstall -y --default || sudo checkinstall -y --default || su -c "checkinstall -y --default"
     popd
 fi
 
