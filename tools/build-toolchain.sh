@@ -193,6 +193,7 @@ make -j "$JOBS"
 # $build_command='checkinstall --default -D --pkgversion "0.0.1" ' #$BINUTILS_V --pkgname "n64-brew-libdragon-binutils-$BINUTILS_V" --maintainer "n64-brew"'
 # $build_command || sudo $build_command || su -c "$build_command"
 sudo checkinstall --default -D --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --nodoc --strip
+sudo checkinstall --default -R --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --nodoc --strip --install=no --fstrans=yes
 popd
 
 # # Compile GCC for MIPS N64.
