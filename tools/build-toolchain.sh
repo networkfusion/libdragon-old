@@ -246,7 +246,12 @@ CFLAGS_FOR_TARGET="-DHAVE_ASSERT_FUNC -O2" ../"newlib-$NEWLIB_V"/configure \
     --disable-libssp \
     --disable-werror
 make -j "$JOBS"
-make install || sudo env PATH="$PATH" make install || su -c "env PATH=\"$PATH\" make install"
+if [ $GENERATE_LINUX_PACKAGES ]; then
+  # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
+  sudo checkinstall --default -D --pkgversion "$NEWLIB_V" --pkgname "n64brew-libdragon-newlib" --maintainer "n64brew"
+else
+  make install || sudo env PATH="$PATH" make install || su -c "env PATH=\"$PATH\" make install"
+fi
 popd
 
 # For a standard cross-compiler, the only thing left is to finish compiling the target libraries
@@ -259,8 +264,8 @@ if [ "$BUILD" == "$HOST" ]; then
       sudo checkinstall --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-stdlibs" --maintainer "n64brew" --strip
     else
       make install-strip || sudo make install-strip || su -c "make install-strip"
-fi
-    popd #TODO: question the location of this!
+    fi
+    popd
 else
     # Compile HOST->TARGET binutils
     # NOTE: we pass --without-msgpack to workaround a bug in Binutils, introduced

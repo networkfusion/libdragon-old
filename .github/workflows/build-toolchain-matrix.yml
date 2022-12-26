@@ -54,7 +54,7 @@ jobs:
       - name: Build N64 MIPS GCC toolchain for ${{ matrix.target-platform }}
         run: |
           cd ./tools/
-          GENERATE_LINUX_PACKAGES=true N64_INST=/usr/local/n64-brew/ HOST=${{ matrix.host }} ./build-toolchain.sh
+          sudo GENERATE_LINUX_PACKAGES=true N64_INST=/usr/local/n64-brew/ HOST=${{ matrix.host }} ./build-toolchain.sh
 
 
       - name: Publish ${{ matrix.target-platform }} Build Artifacts
