@@ -44,15 +44,14 @@ jobs:
         id: cache
         with:
           path: |
-            **/*.tar.gz
-            **/*.tar.bz2
+            ./tools/**/*.tar.gz
+            ./tools/**/*.tar.bz2
           key: ${{ runner.os }}-dependency-downloads
 
       - name: Build N64 MIPS GCC toolchain for ${{ matrix.target-platform }}
         run: |
-          mkdir -p ${{ runner.temp }}/n64/
           cd ./tools/
-          N64_INST=${{ runner.temp }}/n64/ HOST=${{ matrix.host }} ./build-toolchain.sh
+          N64_INST=/usr/local/n64-brew/ HOST=${{ matrix.host }} ./build-toolchain.sh
 
 
       - name: Publish ${{ matrix.target-platform }} Build Artifacts
@@ -60,9 +59,6 @@ jobs:
         with:
           name: gcc-toolchain-mips64-${{ matrix.target-platform }}
           path: |
-            ${{ runner.temp }}/**/*.deb
-            /**/*.deb
-
-      - name: Uploading packages for ${{ matrix.target-platform }}
-        run: |
-          echo upload packages to somewhere they can be used!
+            /usr/local/n64-brew/**/*.deb
+            ./tools/**/*.deb
+            /usr/local/n64-brew/**/*
