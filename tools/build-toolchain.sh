@@ -112,32 +112,32 @@ test -f "newlib-$NEWLIB_V.tar.gz"     || download "https://sourceware.org/pub/ne
 test -d "newlib-$NEWLIB_V"            || tar -xzf "newlib-$NEWLIB_V.tar.gz"
 
 if [ "$GMP_V" != "" ]; then
-    test -f "gmp-$GMP_V.tar.xz"           || download "https://ftp.gnu.org/gnu/gmp/gmp-$GMP_V.tar.bz2"
-    test -d "gmp-$GMP_V"                  || tar -xf "gmp-$GMP_V.tar.bz2" # note: no .gz download file currently available
+    test -f "gmp-$GMP_V.tar.xz"       || download "https://ftp.gnu.org/gnu/gmp/gmp-$GMP_V.tar.bz2"
+    test -d "gmp-$GMP_V"              || tar -xf "gmp-$GMP_V.tar.bz2" # note: no .gz download file currently available
     pushd "gcc-$GCC_V"
     ln -sf ../"gmp-$GMP_V" "gmp"
     popd
 fi
 
 if [ "$MPC_V" != "" ]; then
-    test -f "mpc-$MPC_V.tar.gz"           || download "https://ftp.gnu.org/gnu/mpc/mpc-$MPC_V.tar.gz"
-    test -d "mpc-$MPC_V"                  || tar -xzf "mpc-$MPC_V.tar.gz"
+    test -f "mpc-$MPC_V.tar.gz"       || download "https://ftp.gnu.org/gnu/mpc/mpc-$MPC_V.tar.gz"
+    test -d "mpc-$MPC_V"              || tar -xzf "mpc-$MPC_V.tar.gz"
     pushd "gcc-$GCC_V"
     ln -sf ../"mpc-$MPC_V" "mpc"
     popd
 fi
 
 if [ "$MPFR_V" != "" ]; then
-    test -f "mpfr-$MPFR_V.tar.gz"         || download "https://ftp.gnu.org/gnu/mpfr/mpfr-$MPFR_V.tar.gz"
-    test -d "mpfr-$MPFR_V"                || tar -xzf "mpfr-$MPFR_V.tar.gz"
+    test -f "mpfr-$MPFR_V.tar.gz"     || download "https://ftp.gnu.org/gnu/mpfr/mpfr-$MPFR_V.tar.gz"
+    test -d "mpfr-$MPFR_V"            || tar -xzf "mpfr-$MPFR_V.tar.gz"
     pushd "gcc-$GCC_V"
     ln -sf ../"mpfr-$MPFR_V" "mpfr"
     popd
 fi
 
 if [ "$MAKE_V" != "" ]; then
-    test -f "make-$MAKE_V.tar.gz"       || download "https://ftp.gnu.org/gnu/make/make-$MAKE_V.tar.gz"
-    test -d "make-$MAKE_V"              || tar -xzf "make-$MAKE_V.tar.gz"
+    test -f "make-$MAKE_V.tar.gz"     || download "https://ftp.gnu.org/gnu/make/make-$MAKE_V.tar.gz"
+    test -d "make-$MAKE_V"            || tar -xzf "make-$MAKE_V.tar.gz"
 fi
 
 # Deduce build triplet using config.guess (if not specified)
@@ -196,14 +196,14 @@ pushd binutils_compile_target
     --with-cpu=mips64vr4300 \
     --disable-werror
 make -j "$JOBS"
-if [ $GENERATE_LINUX_PACKAGES && "$BUILD" == "$HOST" ]; then
-    # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
-    checkinstall --default -D --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --strip --nodoc
-    # mkdir -p /root/rpmbuild/SOURCES
-    # checkinstall --default -R --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --nodoc --strip --install=no --fstrans=yes
-else
+# if [ $GENERATE_LINUX_PACKAGES && "$BUILD" == "$HOST" ]; then
+#     # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
+#     checkinstall --default -D --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --strip --nodoc
+#     # mkdir -p /root/rpmbuild/SOURCES
+#     # checkinstall --default -R --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --nodoc --strip --install=no --fstrans=yes
+# else
     make install-strip || sudo make install-strip || su -c "make install-strip"
-fi
+# fi
 popd
 
 # Compile GCC for MIPS N64.
@@ -231,12 +231,12 @@ make all-gcc -j "$JOBS"
 make install-gcc || sudo make install-gcc || su -c "make install-gcc"
 make all-target-libgcc -j "$JOBS"
 
-if [ $GENERATE_LINUX_PACKAGES && "$BUILD" == "$HOST" ]; then
-    # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
-    checkinstall install-target-libgcc --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-libgcc" --maintainer "n64brew"
-else
+# if [ $GENERATE_LINUX_PACKAGES && "$BUILD" == "$HOST" ]; then
+#     # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
+#     checkinstall install-target-libgcc --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-libgcc" --maintainer "n64brew"
+# else
     make install-target-libgcc || sudo make install-target-libgcc || su -c "make install-target-libgcc"
-fi
+# fi
 popd
 
 # Compile newlib for target.
@@ -250,12 +250,12 @@ CFLAGS_FOR_TARGET="-DHAVE_ASSERT_FUNC -O2" ../"newlib-$NEWLIB_V"/configure \
     --disable-libssp \
     --disable-werror
 make -j "$JOBS"
-if [ $GENERATE_LINUX_PACKAGES ]; then
-    # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
-    env PATH="$PATH" checkinstall --default -D --pkgversion "$NEWLIB_V" --pkgname "n64brew-libdragon-newlib" --maintainer "n64brew"
-else
+# if [ $GENERATE_LINUX_PACKAGES ]; then
+#     # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
+#     env PATH="$PATH" checkinstall --default -D --pkgversion "$NEWLIB_V" --pkgname "n64brew-libdragon-newlib" --maintainer "n64brew"
+# else
     make install || sudo env PATH="$PATH" make install || su -c "env PATH=\"$PATH\" make install"
-fi
+# fi
 popd
 
 # For a standard cross-compiler, the only thing left is to finish compiling the target libraries
@@ -265,7 +265,8 @@ if [ "$BUILD" == "$HOST" ]; then
     make all -j "$JOBS"
     if [ $GENERATE_LINUX_PACKAGES ]; then
         # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
-        checkinstall --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-stdlibs" --maintainer "n64brew" --strip
+        # It seems that this step overrides all previous packaging attempts, so we call it by a generic name here!
+        checkinstall --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-gcc-toolchain" --maintainer "n64brew" --strip --nodoc --copyright "(c) 2012 DragonMinded and libDragon Contributors."
     else
         make install-strip || sudo make install-strip || su -c "make install-strip"
     fi
