@@ -26,6 +26,7 @@ jobs:
           sudo apt-get install texinfo
           sudo apt-get install libmpc-dev
           sudo apt-get install checkinstall
+          sudo apt-get install rpmdevtools
           # If there are other dependencies, we should add them here and make sure the documentation is updated!
 
       - name: Install x-compile system build dependencies
@@ -62,6 +63,5 @@ jobs:
         with:
           name: gcc-toolchain-mips64-${{ matrix.target-platform }}
           path: |
-            /usr/local/n64-brew/**/*.deb
-            ./tools/**/*.deb
-          #  /usr/local/n64-brew/**/*
+            ./tools/toolchain/**/*.deb
+            ./tools/toolchain/**/*.rpm
