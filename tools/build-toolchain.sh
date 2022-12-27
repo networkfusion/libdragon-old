@@ -282,7 +282,8 @@ if [ "$BUILD" == "$HOST" ]; then
         # --pkgrelease 0.0.1 # TODO: is this possible to set?
 
         # Generate .deb package.
-        checkinstall install-strip -D $PACKAGE_COMMON_PARAMS
+        make install-strip
+        checkinstall -D $PACKAGE_COMMON_PARAMS
         # Generate .rpm package.
         # checkinstall -R $PACKAGE_COMMON_PARAMS --install=no --fstrans=yes
     else
