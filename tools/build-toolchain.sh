@@ -199,7 +199,7 @@ make -j "$JOBS"
 if [ "$GENERATE_LINUX_PACKAGES" = true ]; then
     # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
     echo Generating Debian package.
-    checkinstall --default -D --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --strip --nodoc
+    checkinstall install-strip --default -D --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --nodoc
 else
   make install-strip || sudo make install-strip || su -c "make install-strip"
 fi
@@ -230,7 +230,7 @@ make all-gcc -j "$JOBS"
 if [ "$GENERATE_LINUX_PACKAGES" = true ]; then
     # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
     echo Generating Debian package.
-    checkinstall --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-gcc" --maintainer "n64brew" --nodoc
+    checkinstall install-gcc --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-gcc" --maintainer "n64brew" --nodoc
 else
     make install-gcc || sudo make install-gcc || su -c "make install-gcc"
 fi
@@ -258,7 +258,7 @@ make -j "$JOBS"
 if [ "$GENERATE_LINUX_PACKAGES" = true ]; then
     # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
     echo Generating Debian package.
-    env PATH="$PATH" checkinstall --default -D --pkgversion "$NEWLIB_V" --pkgname "n64brew-libdragon-newlib" --maintainer "n64brew" --nodoc
+    env PATH="$PATH" checkinstall install --default -D --pkgversion "$NEWLIB_V" --pkgname "n64brew-libdragon-newlib" --maintainer "n64brew" --nodoc
 else
     env PATH="$PATH" make install || sudo env PATH="$PATH" make install || su -c "env PATH=\"$PATH\" make install"
 fi
@@ -278,7 +278,7 @@ if [ "$BUILD" == "$HOST" ]; then
         # --pkgrelease 0.0.1 # TODO: is this possible to set?
 
         # Generate .deb package.
-        checkinstall -D $PACKAGE_COMMON_PARAMS
+        checkinstall install-strip -D $PACKAGE_COMMON_PARAMS
         # Generate .rpm package.
         # checkinstall -R $PACKAGE_COMMON_PARAMS --install=no --fstrans=yes
     else
