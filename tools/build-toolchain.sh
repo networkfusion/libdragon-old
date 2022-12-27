@@ -268,7 +268,7 @@ if [ "$BUILD" == "$HOST" ]; then
         # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
         # It seems that this step overrides all previous packaging attempts, so we call it by a generic name here!
         echo Generating Debian package.
-        $PACKAGE_COMMON_PARAMS='--default --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-gcc-toolchain" --maintainer "n64brew" --strip' # --nodoc --copyright "(c) 2012 DragonMinded and libDragon Contributors."'
+        $PACKAGE_COMMON_PARAMS='--default --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-gcc-stdlibs" --maintainer "n64brew" --strip' # --nodoc --copyright "(c) 2012 DragonMinded and libDragon Contributors."'
         echo $PACKAGE_COMMON_PARAMS
         # --pkgrelease 0.0.1 # TODO: is this possible to set?
 
