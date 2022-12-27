@@ -196,7 +196,7 @@ pushd binutils_compile_target
     --with-cpu=mips64vr4300 \
     --disable-werror
 make -j "$JOBS"
-if [ $GENERATE_LINUX_PACKAGES ]; then
+if [ "$GENERATE_LINUX_PACKAGES" = true ]; then
     # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
     echo Generating Debian package.
     checkinstall --default -D --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --strip --nodoc
@@ -230,7 +230,7 @@ make all-gcc -j "$JOBS"
 make install-gcc || sudo make install-gcc || su -c "make install-gcc"
 make all-target-libgcc -j "$JOBS"
 
-if [ $GENERATE_LINUX_PACKAGES ]; then
+if [ "$GENERATE_LINUX_PACKAGES" = true ]; then
     # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
     echo Generating Debian package.
     checkinstall install-target-libgcc --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-libgcc" --maintainer "n64brew"
@@ -250,7 +250,7 @@ CFLAGS_FOR_TARGET="-DHAVE_ASSERT_FUNC -O2" ../"newlib-$NEWLIB_V"/configure \
     --disable-libssp \
     --disable-werror
 make -j "$JOBS"
-if [ $GENERATE_LINUX_PACKAGES ]; then
+if [ "$GENERATE_LINUX_PACKAGES" = true ]; then
     # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
     echo Generating Debian package.
     env PATH="$PATH" checkinstall --default -D --pkgversion "$NEWLIB_V" --pkgname "n64brew-libdragon-newlib" --maintainer "n64brew"
@@ -264,7 +264,7 @@ popd
 if [ "$BUILD" == "$HOST" ]; then
     pushd gcc_compile_target
     make all -j "$JOBS"
-    if [ $GENERATE_LINUX_PACKAGES ]; then
+    if [ "$GENERATE_LINUX_PACKAGES" = true ]; then
         # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
         # It seems that this step overrides all previous packaging attempts, so we call it by a generic name here!
         echo Generating Debian package.

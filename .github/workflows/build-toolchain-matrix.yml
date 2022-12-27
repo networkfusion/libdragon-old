@@ -53,6 +53,8 @@ jobs:
 
       - name: Build N64 MIPS GCC toolchain for ${{ matrix.target-platform }}
         run: |
+          # required for newlib (as not the default?!)
+          export PATH="$PATH:/usr/local/n64-brew"
           cd ./tools/
           sudo GENERATE_LINUX_PACKAGES=true N64_INST=/usr/local/n64-brew/ HOST=${{ matrix.host }} ./build-toolchain.sh
         continue-on-error: true
