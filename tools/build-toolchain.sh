@@ -199,7 +199,8 @@ make -j "$JOBS"
 if [ "$GENERATE_LINUX_PACKAGES" = true ]; then
     # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
     echo Generating Debian package.
-    checkinstall --default -D --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --nodoc install-strip
+    make install-strip
+    checkinstall --default -D --pkgversion "$BINUTILS_V" --pkgname "n64brew-libdragon-binutils" --maintainer "n64brew" --nodoc
 else
   make install-strip || sudo make install-strip || su -c "make install-strip"
 fi
@@ -230,7 +231,8 @@ make all-gcc -j "$JOBS"
 if [ "$GENERATE_LINUX_PACKAGES" = true ]; then
     # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
     echo Generating Debian package.
-    checkinstall --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-gcc" --maintainer "n64brew" --nodoc install-gcc
+    make install-gcc
+    checkinstall --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-gcc" --maintainer "n64brew" --nodoc
 else
     make install-gcc || sudo make install-gcc || su -c "make install-gcc"
 fi
@@ -238,7 +240,8 @@ make all-target-libgcc -j "$JOBS"
 if [ "$GENERATE_LINUX_PACKAGES" = true ]; then
     # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
     echo Generating Debian package.
-    checkinstall --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-libgcc" --maintainer "n64brew" --nodoc install-target-libgcc
+    make install-target-libgcc
+    checkinstall --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-libgcc" --maintainer "n64brew" --nodoc
 else
   make install-target-libgcc || sudo make install-target-libgcc || su -c "make install-target-libgcc"
 fi
@@ -258,7 +261,8 @@ make -j "$JOBS"
 if [ "$GENERATE_LINUX_PACKAGES" = true ]; then
     # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
     echo Generating Debian package.
-    env PATH="$PATH" checkinstall --default -D --pkgversion "$NEWLIB_V" --pkgname "n64brew-libdragon-newlib" --maintainer "n64brew" --nodoc install
+    make install
+    env PATH="$PATH" checkinstall --default -D --pkgversion "$NEWLIB_V" --pkgname "n64brew-libdragon-newlib" --maintainer "n64brew" --nodoc
 else
     env PATH="$PATH" make install || sudo env PATH="$PATH" make install || su -c "env PATH=\"$PATH\" make install"
 fi
