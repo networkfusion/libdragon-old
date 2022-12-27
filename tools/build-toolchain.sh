@@ -227,13 +227,19 @@ pushd gcc_compile_target
     --disable-werror \
     --with-system-zlib
 make all-gcc -j "$JOBS"
-make install-gcc || sudo make install-gcc || su -c "make install-gcc"
-make all-target-libgcc -j "$JOBS"
-
 if [ "$GENERATE_LINUX_PACKAGES" = true ]; then
     # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
     echo Generating Debian package.
-    checkinstall install-target-libgcc --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-libgcc" --maintainer "n64brew"
+    checkinstall --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-gcc" --maintainer "n64brew" --nodoc
+else
+    make install-gcc || sudo make install-gcc || su -c "make install-gcc"
+fi
+make all-target-libgcc -j "$JOBS"
+make install-target-libgcc
+if [ "$GENERATE_LINUX_PACKAGES" = true ]; then
+    # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
+    echo Generating Debian package.
+    checkinstall --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-libgcc" --maintainer "n64brew" --nodoc
 else
   make install-target-libgcc || sudo make install-target-libgcc || su -c "make install-target-libgcc"
 fi
@@ -253,9 +259,9 @@ make -j "$JOBS"
 if [ "$GENERATE_LINUX_PACKAGES" = true ]; then
     # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
     echo Generating Debian package.
-    env PATH="$PATH" checkinstall --default -D --pkgversion "$NEWLIB_V" --pkgname "n64brew-libdragon-newlib" --maintainer "n64brew"
+    env PATH="$PATH" checkinstall --default -D --pkgversion "$NEWLIB_V" --pkgname "n64brew-libdragon-newlib" --maintainer "n64brew" --nodoc
 else
-  make install || sudo env PATH="$PATH" make install || su -c "env PATH=\"$PATH\" make install"
+    env PATH="$PATH" make install || sudo env PATH="$PATH" make install || su -c "env PATH=\"$PATH\" make install"
 fi
 popd
 
@@ -268,7 +274,7 @@ if [ "$BUILD" == "$HOST" ]; then
         # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
         # It seems that this step overrides all previous packaging attempts, so we call it by a generic name here!
         echo Generating Debian package.
-        $PACKAGE_COMMON_PARAMS='--default --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-gcc-stdlibs" --maintainer "n64brew" --strip' # --nodoc --copyright "(c) 2012 DragonMinded and libDragon Contributors."'
+        $PACKAGE_COMMON_PARAMS='--default --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-gcc-stdlibs" --maintainer "n64brew" --strip --nodoc' #--copyright "(c) 2012 DragonMinded and libDragon Contributors."'
         echo $PACKAGE_COMMON_PARAMS
         # --pkgrelease 0.0.1 # TODO: is this possible to set?
 
