@@ -82,17 +82,18 @@ jobs:
           # https://fpm.readthedocs.io/en/v1.15.0/getting-started.html
           echo generating fpm packages
           fpm \
-            -s /usr/local/n64-brew \
+            -s dir \
             -t deb \
             -p n64brew-libdragon-toolchain-0.0.1-0-any.deb \
             --name n64brew-libdragon-toolchain \
-            --license agpl3 \
+            --license mit \
             --version 0.0.1 \
             --architecture all \
-            --depends bash --depends lolcat \
+            --depends bash \
             --description "libdragon toolchain" \
             --url "https://n64brew.com" \
-            --maintainer "N64 Brew Community"
+            --maintainer "N64 Brew Community" \
+            n64brew-libdragon-toolchain=/usr/local/n64-brew n64brew-libdragon-toolchain.1=/usr/local/n64-brew.1
         continue-on-error: true
 
       - name: Publish ${{ matrix.target-platform }} Build Artifacts
