@@ -40,22 +40,23 @@ jobs:
       # https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-ruby
       - name: Set up Ruby
         if: ${{ matrix.target-platform == 'Linux-x86_64' }}
-        uses: ruby/setup-ruby@359bebbc29cbe6c87da6bc9ea3bc930432750108
+        uses: ruby/setup-ruby@v1
         with:
+          bundler-cache: true
           ruby-version: '3.1'
+
+      - name: Install Package Creator
+        if: ${{ matrix.target-platform == 'Linux-x86_64' }}
+        run: |
+          echo installing jordansissel/fpm ruby package
+          gem install fpm
+          fpm --version
+        continue-on-error: true
 
       - name: Checkout Code
         uses: actions/checkout@v3
         with:
           fetch-depth: 1 # we only require the last check-in, unless we want to create a changelog.
-
-      - name: Install fpm
-        if: ${{ matrix.target-platform == 'Linux-x86_64' }}
-        run: |
-          echo installing fpm packages
-          gem install fpm
-          fpm --version
-        continue-on-error: true
 
       # Cache and restore dependencies instead of downloading them to increase build speed.
       # TODO: will the cache ever expire?!
@@ -70,10 +71,11 @@ jobs:
 
       - name: Build N64 MIPS GCC toolchain for ${{ matrix.target-platform }}
         run: |
+          # TODO: use runner temp?!
           # required for newlib (as not the default?!)
           export PATH="$PATH:/usr/local/n64-brew"
           cd ./tools/
-          sudo N64_INST=/usr/local/n64-brew/ HOST=${{ matrix.host }} ./build-toolchain.sh
+          sudo N64_INST=/usr/local/n64-brew HOST=${{ matrix.host }} ./build-toolchain.sh
         continue-on-error: true
 
       - name: Generate debian package
@@ -86,14 +88,14 @@ jobs:
             -t deb \
             -p n64brew-libdragon-toolchain-0.0.1-0-any.deb \
             --name n64brew-libdragon-toolchain \
-            --license mit \
+            --license UNLICENSE \
             --version 0.0.1 \
             --architecture all \
             --depends bash \
             --description "libdragon toolchain" \
             --url "https://n64brew.com" \
             --maintainer "N64 Brew Community" \
-            n64brew-libdragon-toolchain=/usr/local/n64-brew n64brew-libdragon-toolchain.1=/usr/local/n64-brew.1
+            n64brew-libdragon-toolchain=/usr/local/n64-brew/ n64brew-libdragon-toolchain.1=/usr/local/n64-brew/.1
         continue-on-error: true
 
       - name: Publish ${{ matrix.target-platform }} Build Artifacts
@@ -103,6 +105,7 @@ jobs:
           name: gcc-toolchain-mips64-${{ matrix.target-platform }}
           path: |
             /usr/local/n64/n64-brew
+        continue-on-error: true
 
       - name: Publish ${{ matrix.target-platform }} Build Artifacts
         if: ${{ matrix.target-platform == 'Linux-x86_64' }}
@@ -110,5 +113,5 @@ jobs:
         with:
           name: gcc-toolchain-mips64-${{ matrix.target-platform }}
           path: |
-            ./tools/toolchain/**/*.deb
-            ./tools/toolchain/**/*.rpm
+            ./**/*.deb
+        continue-on-error: true
