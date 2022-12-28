@@ -11,12 +11,14 @@ on:
   
 jobs:
   build-toolchain:
-    runs-on: ubuntu-latest
+    # targets the oldest ubuntu image available to create valid packages for as many versions possible.
+    # TODO: move to using a docker container to support older versions.
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
         include: [
-          { target-platform: Windows-x86_64, host: x86_64-w64-mingw32 },
+#          { target-platform: Windows-x86_64, host: x86_64-w64-mingw32 },
           { target-platform: Linux-x86_64, host: '' }
         ]
 
@@ -26,6 +28,7 @@ jobs:
           sudo apt-get install libmpfr-dev
           sudo apt-get install texinfo
           sudo apt-get install libmpc-dev
+          sudo apt-get install squashfs-tools
           # If there are other dependencies, we should add them here and make sure the documentation is updated!
 
       - name: Install x-compile system build dependencies
@@ -34,8 +37,25 @@ jobs:
           sudo apt-get install -y mingw-w64
           # If there are other dependencies, we should add them here and make sure the documentation is updated!
 
-      - uses: actions/checkout@v3
-        name: Checkout Code
+      # https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-ruby
+      - name: Set up Ruby
+        if: ${{ matrix.target-platform == 'Linux-x86_64' }}
+        uses: ruby/setup-ruby@359bebbc29cbe6c87da6bc9ea3bc930432750108
+        with:
+          ruby-version: '3.1'
+
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1 # we only require the last check-in, unless we want to create a changelog.
+
+      - name: Install fpm
+        if: ${{ matrix.target-platform == 'Linux-x86_64' }}
+        run: |
+          echo installing fpm packages
+          gem install fpm
+          fpm --version
+        continue-on-error: true
 
       # Cache and restore dependencies instead of downloading them to increase build speed.
       # TODO: will the cache ever expire?!
@@ -44,46 +64,49 @@ jobs:
         id: cache
         with:
           path: |
-            **/*.tar.gz
-            **/*.tar.bz2
+            ./tools/**/*.tar.gz
+            ./tools/**/*.tar.bz2
           key: ${{ runner.os }}-dependency-downloads
 
       - name: Build N64 MIPS GCC toolchain for ${{ matrix.target-platform }}
         run: |
-          mkdir -p ${{ runner.temp }}/n64/usr/local/
+          # required for newlib (as not the default?!)
+          export PATH="$PATH:/usr/local/n64-brew"
           cd ./tools/
-          N64_INST=${{ runner.temp }}/n64/usr/local/ HOST=${{ matrix.host }} ./build-toolchain.sh
+          sudo N64_INST=/usr/local/n64-brew/ HOST=${{ matrix.host }} ./build-toolchain.sh
+        continue-on-error: true
 
       - name: Generate debian package
         if: ${{ matrix.target-platform == 'Linux-x86_64' }}
-        uses: jiro4989/build-deb-action@v2
-        with:
-          package: libdragon-gcc-toolchain
-          package_root: ${{ runner.temp }}/n64
-          maintainer: 'N64Brew'
-          version: '0.0.1' # TODO: align with GCC version
-          arch: 'amd64'
-          desc: 'MIPS GCC toolchain for the N64.'
-        continue-on-error: true
-
-      - name: Generate rpm package
-        if: ${{ matrix.target-platform == 'Linux-x86_64' }}
-        uses: jiro4989/build-rpm-action@v2
-        with:
-          package: libdragon-gcc-toolchain
-          package_root: ${{ runner.temp }}/n64
-          maintainer: 'N64Brew'
-          version: '0.0.1' # TODO: align with GCC version. rpm workflow cannot handle hyphens?!
-          arch: 'x86_64'
-          desc: 'MIPS GCC toolchain for the N64.'
+        run: |
+          echo generating fpm packages
+          fpm \
+            -s dir -t deb \
+            -p hello-world-0.1.0-1-any.deb \
+            --name hello-world \
+            --license agpl3 \
+            --version 0.1.0 \
+            --architecture all \
+            --depends bash --depends lolcat \
+            --description "Say hi!" \
+            --url "https://example.com/hello-world" \
+            --maintainer "You The Amazing Person <you are an amazing person at example dot com>" \
+            hello-world=/usr/bin/hello-world hello-world.1=/usr/share/man/man1/hello-world.1
         continue-on-error: true
 
       - name: Publish ${{ matrix.target-platform }} Build Artifacts
+        if: ${{ matrix.target-platform == 'Windows-x86_64' }}
         uses: actions/upload-artifact@v3
         with:
           name: gcc-toolchain-mips64-${{ matrix.target-platform }}
-          path: ${{ runner.temp }}
+          path: |
+            /usr/local/n64/n64-brew
 
-      - name: Uploading packages for ${{ matrix.target-platform }}
-        run: |
-          echo upload packages to somewhere they can be used!
+      - name: Publish ${{ matrix.target-platform }} Build Artifacts
+        if: ${{ matrix.target-platform == 'Linux-x86_64' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: gcc-toolchain-mips64-${{ matrix.target-platform }}
+          path: |
+            ./tools/toolchain/**/*.deb
+            ./tools/toolchain/**/*.rpm
