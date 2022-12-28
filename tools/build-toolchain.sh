@@ -232,8 +232,8 @@ if [ "$GENERATE_LINUX_PACKAGES" = true ]; then
     # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
     echo Generating Debian package.
     make install-gcc
-    checkinstall --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-gcc" --maintainer "n64brew" --nodoc
-else
+#    checkinstall --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-gcc" --maintainer "n64brew" --nodoc
+#else
     make install-gcc || sudo make install-gcc || su -c "make install-gcc"
 fi
 make all-target-libgcc -j "$JOBS"
@@ -241,8 +241,8 @@ if [ "$GENERATE_LINUX_PACKAGES" = true ]; then
     # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
     echo Generating Debian package.
     make install-target-libgcc
-    checkinstall --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-libgcc" --maintainer "n64brew" --nodoc
-else
+#    checkinstall --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-libgcc" --maintainer "n64brew" --nodoc
+#else
   make install-target-libgcc || sudo make install-target-libgcc || su -c "make install-target-libgcc"
 fi
 popd
