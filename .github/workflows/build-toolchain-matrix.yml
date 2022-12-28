@@ -11,7 +11,9 @@ on:
   
 jobs:
   build-toolchain:
-    runs-on: ubuntu-latest
+    # targets the oldest ubuntu image available to create valid packages for as many versions possible.
+    # TODO: move to using a docker container to support older versions.
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
@@ -56,9 +58,11 @@ jobs:
           # required for newlib (as not the default?!)
           export PATH="$PATH:/usr/local/n64-brew"
           cd ./tools/
+          # TODO: note that checkinstall is commented out for the first pass of GCC, so might generate an incomplete package.
+          # This is due to install failures that are caused by the second pass deb package trying and failing to overwrite files in the first pass package.
+          # We still need to check whether the first package is actually required.
           sudo GENERATE_LINUX_PACKAGES=true N64_INST=/usr/local/n64-brew/ HOST=${{ matrix.host }} ./build-toolchain.sh
         continue-on-error: true
-
 
       - name: Publish ${{ matrix.target-platform }} Build Artifacts
         uses: actions/upload-artifact@v3
