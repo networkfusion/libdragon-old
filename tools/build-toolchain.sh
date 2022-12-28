@@ -232,17 +232,17 @@ pushd gcc_compile_target
 make all-gcc -j "$JOBS"
 if [ "$GENERATE_LINUX_PACKAGES" = true ]; then
     # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
-    echo Generating Debian package.
-    checkinstall --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-gcc" --maintainer "n64brew" --nodoc make install-gcc
-else
+#    echo Generating Debian package.
+#    checkinstall --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-gcc" --maintainer "n64brew" --nodoc make install-gcc
+#else
     make install-gcc || sudo make install-gcc || su -c "make install-gcc"
 fi
 make all-target-libgcc -j "$JOBS"
 if [ "$GENERATE_LINUX_PACKAGES" = true ]; then
     # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
-    echo Generating Debian package.
-    checkinstall --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-libgcc" --maintainer "n64brew" --nodoc make install-target-libgcc
-else
+#    echo Generating Debian package.
+#    checkinstall --default -D --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-libgcc" --maintainer "n64brew" --nodoc make install-target-libgcc
+#else
   make install-target-libgcc || sudo make install-target-libgcc || su -c "make install-target-libgcc"
 fi
 popd
@@ -276,7 +276,7 @@ if [ "$BUILD" == "$HOST" ]; then
         # https://manpages.debian.org/bullseye/checkinstall/checkinstall.8.en.html
         # It seems that this step overrides all previous packaging attempts, so we call it by a generic name here!
         echo Generating Debian package.
-        checkinstall -D --default --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-gcc-stdlibs" --maintainer "n64brew" --strip --nodoc make install-strip
+        checkinstall -D --default --pkgversion "$GCC_V" --pkgname "n64brew-libdragon-gcc-stdlibs" --maintainer "n64brew" --nodoc make install-strip
     else
         make install-strip || sudo make install-strip || su -c "make install-strip"
     fi
