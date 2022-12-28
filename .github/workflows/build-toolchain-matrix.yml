@@ -79,19 +79,20 @@ jobs:
       - name: Generate debian package
         if: ${{ matrix.target-platform == 'Linux-x86_64' }}
         run: |
+          # https://fpm.readthedocs.io/en/v1.15.0/getting-started.html
           echo generating fpm packages
           fpm \
-            -s dir -t deb \
-            -p hello-world-0.1.0-1-any.deb \
-            --name hello-world \
+            -s /usr/local/n64-brew \
+            -t deb \
+            -p n64brew-libdragon-toolchain-0.0.1-0-any.deb \
+            --name n64brew-libdragon-toolchain \
             --license agpl3 \
-            --version 0.1.0 \
+            --version 0.0.1 \
             --architecture all \
             --depends bash --depends lolcat \
-            --description "Say hi!" \
-            --url "https://example.com/hello-world" \
-            --maintainer "You The Amazing Person <you are an amazing person at example dot com>" \
-            hello-world=/usr/bin/hello-world hello-world.1=/usr/share/man/man1/hello-world.1
+            --description "libdragon toolchain" \
+            --url "https://n64brew.com" \
+            --maintainer "N64 Brew Community"
         continue-on-error: true
 
       - name: Publish ${{ matrix.target-platform }} Build Artifacts
