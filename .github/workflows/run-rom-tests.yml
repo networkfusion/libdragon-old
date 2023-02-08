@@ -40,7 +40,8 @@ jobs:
 
     env:
       Delay_Time_Seconds: 15
-      Enable_Screenshot: 'no' # false by default
+      Enable_Screenshot: 'no' # disabled by default
+      CI-Debug: false
 
     steps:
 
@@ -50,13 +51,12 @@ jobs:
         with:
           name: roms
           path: ${{ runner.temp }}/roms
-        continue-on-error: true
 
-      # - name: Show ROM Paths # helps with creating new matrix paths
-      #   run: |
-      #     cd ${{ runner.temp }}/roms
-      #     ls -R
-      #   continue-on-error: true
+      - name: Show ROM Paths # helps with creating new matrix paths
+        if: ${{ env.CI-Debug == 'true' }}
+        run: |
+          cd ${{ runner.temp }}/roms
+          ls -R
 
       - name: Install ares emulator
         if: ${{ matrix.ares-ci-compatible }}
@@ -135,20 +135,20 @@ jobs:
 
 
       - name: Run ROM in Ares for screenshot
-        if: ${{ env.Enable_Screenshot == 'yes' }} # FIXME: should also take into account ${{ matrix.ares-ci-compatible }}
+        if: ${{ matrix.ares-ci-compatible }} || ${{ env.Enable_Screenshot == 'yes' }}
         run: |
           Start-Process -FilePath "ares-nightly/ares" -ArgumentList "${{ runner.temp }}/roms/${{ matrix.rom-path }}/${{ matrix.rom-name }}.z64 --fullscreen"
           Start-Sleep -Seconds ${{ env.Delay_Time_Seconds }}
         continue-on-error: true
 
       - name: Take screenshot
-        if: ${{ env.Enable_Screenshot == 'yes' }} # FIXME: should also take into account ${{ matrix.ares-ci-compatible }}
+        if: ${{ matrix.ares-ci-compatible }} || ${{ env.Enable_Screenshot == 'yes' }}
         uses: networkfusion/desktop-screenshot-action@0.2
         with:
           file-name: '${{ matrix.rom-name }}-emu-screenshot_${{ env.Delay_Time_Seconds }}s.jpg'
 
       - name: Cleanup ares process
-        if: ${{ env.Enable_Screenshot == 'yes' }} # FIXME: should also take into account ${{ matrix.ares-ci-compatible }}
+        if: ${{ matrix.ares-ci-compatible }} || ${{ env.Enable_Screenshot == 'yes' }}
         run: |
           Stop-Process -Name "ares"
         continue-on-error: true
