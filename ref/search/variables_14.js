@@ -1,13 +1,21 @@
 var searchData=
 [
-  ['wave_0',['wave',['../wav64_8h.html#a4201df70d0e73f29e11d22666cc0b0bd',1,'wav64_t::wave()'],['../ym64_8h.html#a7a66bebab0cec3b2b39b25b2728a1116',1,'ym64player_t::wave()']]],
-  ['waves_1',['waves',['../xm64_8h.html#afcc767f3e79098a163b8fe95bee4690e',1,'xm64player_t']]],
-  ['week_5fday_2',['week_day',['../group__rtc.html#a114773185cd5db69d5d6ee38800f63f1',1,'rtc_time_t']]],
-  ['width_3',['width',['../group__rdp.html#adff334763a74e03368d0e936afea52fd',1,'sprite_cache::width()'],['../group__display.html#a19f266d9fac3a424655d72ef8311da01',1,'resolution_t::width()'],['../group__graphics.html#a8d0f5ca9dc069850fc604107eb0f085d',1,'sprite_t::width()'],['../group__lowlevel.html#a7cbd8d998467d09f233c554a61aea742',1,'VI_regs_t::width()'],['../surface_8h.html#a4da37c9b386a4740ef024d3eb33bd090',1,'surface_t::width()']]],
-  ['widx_4',['widx',['../samplebuffer_8h.html#acddf24dc95038f2a3c91119d224cb0b4',1,'samplebuffer_t']]],
-  ['wpos_5',['wpos',['../samplebuffer_8h.html#a73e969a4d788679d42b3abae10258ada',1,'samplebuffer_t']]],
-  ['write_6',['write',['../structfilesystem__t.html#a283b797a834091ca6c45c5ac9c5a940e',1,'filesystem_t']]],
-  ['write_5flength_7',['write_length',['../group__lowlevel.html#a49dc82d881cae5f21cd7d7f2c0d68466',1,'PI_regs_t']]],
-  ['wv_5fctx_8',['wv_ctx',['../samplebuffer_8h.html#aca1b67ad123f7e11ba0a9ba3d5aa462c',1,'samplebuffer_t']]],
-  ['wv_5fread_9',['wv_read',['../samplebuffer_8h.html#a9bc76559025664618f3fcc8c3abde8e5',1,'samplebuffer_t']]]
+  ['v_0',['v',['../structwav64__vadpcm__vector__t.html#acd915e801499ad26dddf97829edc52c0',1,'wav64_vadpcm_vector_t']]],
+  ['v_5fint_1',['v_int',['../group__lowlevel.html#a78d31d9148d84ffe2e31b4c8314eb59e',1,'VI_regs_t']]],
+  ['v_5flimits_2',['v_limits',['../group__lowlevel.html#a0a7255f9219ef588808846d57882b5fa',1,'VI_regs_t']]],
+  ['v_5fscale_3',['v_scale',['../group__lowlevel.html#a7154f52a793a1229191cb8171c520d9e',1,'VI_regs_t']]],
+  ['v_5fsync_4',['v_sync',['../group__lowlevel.html#a41a71cafa3141b8eda5f011c971f817e',1,'VI_regs_t']]],
+  ['vaccum_5',['vaccum',['../rsp_8h.html#a0a922c0b0bd1e4a58a389d53125d5bd3',1,'rsp_snapshot_t']]],
+  ['valid_6',['valid',['../group__mempak.html#ac6f84c97a7f4614d2a89463baa8874be',1,'entry_structure_t']]],
+  ['valign_7',['valign',['../rdpq__text_8h.html#a6de659bfe38e8cdf4aee8833b0c2b4be',1,'rdpq_textparms_t::valign()'],['../yuv_8h.html#a38953c7a3b66fc9c857b3a6a2be4e1b1',1,'yuv_fmv_parms_t::valign()']]],
+  ['value_8',['value',['../structdso__sym__t.html#ae81edeaf600840c54700293e89822bb0',1,'dso_sym_t::value()'],['../structdso__file__sym__t.html#a585376dc892efdbd9112ec1650734ecd',1,'dso_file_sym_t::value()']]],
+  ['vctx_9',['vctx',['../rdpq__debug_8c.html#a755e94cd6d8ae5ea7381ce597c7ce8a6',1,'rdpq_debug.c']]],
+  ['vendor_10',['vendor',['../group__mempak.html#a4e65c83bc81eb966642da54ae8c885f5',1,'entry_structure_t']]],
+  ['version_11',['version',['../backtrace_8c.html#a49df133ec55445f03fd42411feafd66c',1,'symtable_header_t::version()'],['../structwav64__header__t.html#a41f089df9c3a1121a13adeecca288596',1,'wav64_header_t::version()'],['../group__lowlevel.html#afd8c6c5c941763964cdb3db04d731923',1,'MI_regs_t::version()'],['../structsprite__ext__t.html#a3bfa3f371fd2e730dcdb71c923be078d',1,'sprite_ext_t::version()'],['../structrdpq__font__t.html#a46d86c17e698bb8b21946d360c3e63f0',1,'rdpq_font_t::version()'],['../structmodel64__t.html#a9e0027c91bfa1c855df84f900baf69f8',1,'model64_t::version()'],['../structasset__header__t.html#a27a6d9b3639eee4a44c290b23e90ae95',1,'asset_header_t::version()']]],
+  ['version_5fnumber_12',['version_number',['../tpak_8h.html#ab742ef846978b3ffe4a313374479c0b8',1,'gameboy_cartridge_header']]],
+  ['vertex_5fprecision_13',['vertex_precision',['../structprimitive__t.html#a75cd85dc5793688c950a079a1085a231',1,'primitive_t']]],
+  ['vi_5fcallback_14',['VI_callback',['../group__interrupt.html#gae53298ee0d7e09b763c88bce13f41d58',1,'interrupt.c']]],
+  ['vol_15',['vol',['../structAYEnvelope.html#abc79941d9d5d3d5c9f22f0b4d97cdffa',1,'AYEnvelope']]],
+  ['vpr_16',['vpr',['../rsp_8h.html#a007496e4e8d0e57e66462151c8156051',1,'rsp_snapshot_t']]],
+  ['vslices_17',['vslices',['../sprite_8h.html#a3b1f4d3f9dd51d45993bda45a6d474d3',1,'sprite_t']]]
 ];

@@ -96,6 +96,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>wav64_set_loop</b> (<
 <tr class="memitem:af0355ddf406260d86dd082bfd4f1ed0b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="wav64_8h.html#af0355ddf406260d86dd082bfd4f1ed0b">wav64_play</a> (<a class="el" href="wav64_8h.html#structwav64__t">wav64_t</a> *wav, int ch)</td></tr>
 <tr class="memdesc:af0355ddf406260d86dd082bfd4f1ed0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start playing a WAV64 file.  <a href="wav64_8h.html#af0355ddf406260d86dd082bfd4f1ed0b">More...</a><br /></td></tr>
 <tr class="separator:af0355ddf406260d86dd082bfd4f1ed0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:add7b6d597315e268857bd2a55fc49ad7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="wav64_8h.html#add7b6d597315e268857bd2a55fc49ad7">wav64_close</a> (<a class="el" href="wav64_8h.html#structwav64__t">wav64_t</a> *wav)</td></tr>
+<tr class="memdesc:add7b6d597315e268857bd2a55fc49ad7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Close a WAV64 file.  <a href="wav64_8h.html#add7b6d597315e268857bd2a55fc49ad7">More...</a><br /></td></tr>
+<tr class="separator:add7b6d597315e268857bd2a55fc49ad7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >Support for WAV64 audio files. </p>
@@ -129,6 +132,12 @@ wave</td>
 rom_addr</td>
 <td class="fielddoc">
 Absolute ROM address of WAV64. </td></tr>
+<tr><td class="fieldtype">
+<a id="aee15df2ac01f6586caaf33d1cae6511e" name="aee15df2ac01f6586caaf33d1cae6511e"></a>void *</td>
+<td class="fieldname">
+ext</td>
+<td class="fielddoc">
+Pointer to extended data (internal use) </td></tr>
 </table>
 
 </div>
@@ -210,10 +219,36 @@ Absolute ROM address of WAV64. </td></tr>
 
 </div>
 </div>
+<a id="add7b6d597315e268857bd2a55fc49ad7" name="add7b6d597315e268857bd2a55fc49ad7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#add7b6d597315e268857bd2a55fc49ad7">&#9670;&nbsp;</a></span>wav64_close()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void wav64_close </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="wav64_8h.html#structwav64__t">wav64_t</a> *&#160;</td>
+          <td class="paramname"><em>wav</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Close a WAV64 file. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">wav</td><td>Pointer to <a class="el" href="wav64_8h.html#structwav64__t" title="WAV64 structure.">wav64_t</a> structure </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Feb 4 2023 15:46:55 for libdragon by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.4
+Generated on Mon Jan 22 2024 19:32:52 for libdragon by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.4
 </small></address>
 </body>
 </html>

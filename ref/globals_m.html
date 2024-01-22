@@ -75,13 +75,18 @@ $(function() {
 <li>MAX_JOYBUS_MSGS&#160;:&#160;<a class="el" href="group__joybus.html#ga42220dfa963618e170f0c794440a02c7">joybus.c</a></li>
 <li>MAX_OPEN_FILES&#160;:&#160;<a class="el" href="group__dfs.html#gae4777ede3ed2173c78fab7798ad6eddb">dragonfs.h</a></li>
 <li>MAX_OPEN_HANDLES&#160;:&#160;<a class="el" href="group__system.html#gabc61aac6da74a8a3fb9d8e883f8c3468">system.h</a></li>
-<li>MAX_RESET_HANDLERS&#160;:&#160;<a class="el" href="group__exceptions.html#gaf76584f6b55e9cac50bf3f3a706f3428">exception.c</a></li>
+<li>MAX_RESET_HANDLERS&#160;:&#160;<a class="el" href="group__interrupt.html#gaf76584f6b55e9cac50bf3f3a706f3428">interrupt.c</a></li>
+<li>MAX_SYSCALL_HANDLERS&#160;:&#160;<a class="el" href="group__exceptions.html#gacc6936ec7217ab33cafead5d46266c8e">exception.c</a></li>
+<li>mem_read16()&#160;:&#160;<a class="el" href="group__n64sys.html#ga2aea92b793cb2cb0024e3c3f76f42f86">n64sys.c</a>, <a class="el" href="group__n64sys.html#ga2aea92b793cb2cb0024e3c3f76f42f86">n64sys.h</a></li>
+<li>mem_read32()&#160;:&#160;<a class="el" href="group__n64sys.html#gad2e40ee85f2dc2bce6569642eeab7316">n64sys.c</a>, <a class="el" href="group__n64sys.html#gad2e40ee85f2dc2bce6569642eeab7316">n64sys.h</a></li>
+<li>mem_read64()&#160;:&#160;<a class="el" href="group__n64sys.html#ga4c66990ca4a34f67cc1bbcb3a21e46be">n64sys.c</a>, <a class="el" href="group__n64sys.html#ga4c66990ca4a34f67cc1bbcb3a21e46be">n64sys.h</a></li>
+<li>mem_read8()&#160;:&#160;<a class="el" href="group__n64sys.html#gaf295299980b5f471c0ddcacfe33bbf88">n64sys.c</a>, <a class="el" href="group__n64sys.html#gaf295299980b5f471c0ddcacfe33bbf88">n64sys.h</a></li>
 <li>MEMORY_BARRIER&#160;:&#160;<a class="el" href="group__n64sys.html#ga56d4cbe1e093c683432a147eb1ccb293">n64sys.h</a></li>
 <li>MEMPAK_BLOCK_SIZE&#160;:&#160;<a class="el" href="group__mempak.html#ga8291313350e93f54e8c397f6d13f9454">mempak.h</a></li>
 <li>MI_INTR_AI&#160;:&#160;<a class="el" href="group__interrupt.html#ga7d52d5c9f6c5c45685c10e40dd6df88b">interrupt.c</a></li>
 <li>MI_INTR_DP&#160;:&#160;<a class="el" href="group__interrupt.html#gaa69a5f85f0b68ee2184b9cff279b833c">interrupt.c</a></li>
 <li>MI_INTR_PI&#160;:&#160;<a class="el" href="group__interrupt.html#ga29720422b6385bbb049db3b5b73255a9">interrupt.c</a></li>
-<li>MI_INTR_SI&#160;:&#160;<a class="el" href="group__interrupt.html#gac34a484454f7cf060f985814d0af2c81">interrupt.c</a></li>
+<li>MI_INTR_SI&#160;:&#160;<a class="el" href="group__interrupt.html#gac34a484454f7cf060f985814d0af2c81">interrupt.c</a>, <a class="el" href="group__joybus.html#gac34a484454f7cf060f985814d0af2c81">joybus.c</a></li>
 <li>MI_INTR_SP&#160;:&#160;<a class="el" href="group__interrupt.html#ga92b21e494029fc8c3b282794e96e7285">interrupt.c</a></li>
 <li>MI_INTR_VI&#160;:&#160;<a class="el" href="group__interrupt.html#ga9598982e34e5e13fed6dbb16890d1596">interrupt.c</a></li>
 <li>MI_MASK_AI&#160;:&#160;<a class="el" href="group__interrupt.html#ga857abfc07b66c2a65c2ed9f2ae2c4a8a">interrupt.c</a></li>
@@ -102,19 +107,34 @@ $(function() {
 <li>MI_MASK_SI&#160;:&#160;<a class="el" href="group__interrupt.html#gaa7a069f3586c7cdedf8b1a1835a29a41">interrupt.c</a></li>
 <li>MI_MASK_SP&#160;:&#160;<a class="el" href="group__interrupt.html#gaa709c41f72ef70fa805fec6b00cad531">interrupt.c</a></li>
 <li>MI_MASK_VI&#160;:&#160;<a class="el" href="group__interrupt.html#ga40dfae08a85485d6dd093db47ee548d0">interrupt.c</a></li>
+<li>MIPMAP_INTERPOLATE&#160;:&#160;<a class="el" href="rdpq__mode_8h.html#af881bfd1d140d97a1707c30e476787bda4c0e0308384c16155ba70b6478a19a1d">rdpq_mode.h</a></li>
+<li>MIPMAP_INTERPOLATE_DETAIL&#160;:&#160;<a class="el" href="rdpq__mode_8h.html#af881bfd1d140d97a1707c30e476787bda56a4cac4ac07058741964903bf6be122">rdpq_mode.h</a></li>
+<li>MIPMAP_INTERPOLATE_SHARPEN&#160;:&#160;<a class="el" href="rdpq__mode_8h.html#af881bfd1d140d97a1707c30e476787bda7455257e1457de78a287eef97bfa7b43">rdpq_mode.h</a></li>
+<li>MIPMAP_NEAREST&#160;:&#160;<a class="el" href="rdpq__mode_8h.html#af881bfd1d140d97a1707c30e476787bda3837066563b27aebdd84a96b3db6fb9d">rdpq_mode.h</a></li>
+<li>MIPMAP_NONE&#160;:&#160;<a class="el" href="rdpq__mode_8h.html#af881bfd1d140d97a1707c30e476787bda4d4a9d70d9494dce4b22cd6690b1c633">rdpq_mode.h</a></li>
+<li>MIPS_OP_ADDIU_SP&#160;:&#160;<a class="el" href="backtrace_8c.html#ac8bc4759a4b6d337210c9844acd305b1">backtrace.c</a></li>
+<li>MIPS_OP_DADDIU_SP&#160;:&#160;<a class="el" href="backtrace_8c.html#a3c2b2d8042b4eae33eb6987ed48ebeec">backtrace.c</a></li>
+<li>MIPS_OP_JR_RA&#160;:&#160;<a class="el" href="backtrace_8c.html#abaa0fd6d8e5c9b73484fa5defe0cb641">backtrace.c</a></li>
+<li>MIPS_OP_LUI_GP&#160;:&#160;<a class="el" href="backtrace_8c.html#a0100e60bd74d46bff68a649be695bfb4">backtrace.c</a></li>
+<li>MIPS_OP_MOVE_FP_SP&#160;:&#160;<a class="el" href="backtrace_8c.html#af4b9dc08468b92535beeba8738812d2a">backtrace.c</a></li>
+<li>MIPS_OP_NOP&#160;:&#160;<a class="el" href="backtrace_8c.html#ab1f9a5c825a583b912c50683a7927d64">backtrace.c</a></li>
+<li>MIPS_OP_SD_FP_SP&#160;:&#160;<a class="el" href="backtrace_8c.html#a4005db26c4e8876c14094f0687932506">backtrace.c</a></li>
+<li>MIPS_OP_SD_RA_SP&#160;:&#160;<a class="el" href="backtrace_8c.html#a91f4956597d8fae1c482452d175d72a1">backtrace.c</a></li>
 <li>MIRROR_DISABLED&#160;:&#160;<a class="el" href="group__rdp.html#gga363c9ad4c9c12367c6a635021d483ef0adf197e402ec28cbc65d68597acfe45b7">rdp.h</a></li>
+<li>MIRROR_NONE&#160;:&#160;<a class="el" href="rdpq__tex_8h.html#a10442b231d256560bd6947ee0c7e9f8b">rdpq_tex.h</a></li>
+<li>MIRROR_REPEAT&#160;:&#160;<a class="el" href="rdpq__tex_8h.html#a79e89991373c01e9cf5d7597bbdc5cd6">rdpq_tex.h</a></li>
 <li>mirror_t&#160;:&#160;<a class="el" href="group__rdp.html#ga363c9ad4c9c12367c6a635021d483ef0">rdp.h</a></li>
 <li>MIRROR_X&#160;:&#160;<a class="el" href="group__rdp.html#gga363c9ad4c9c12367c6a635021d483ef0a05b3f89abad672ea304709d8fbfdc1e6">rdp.h</a></li>
 <li>MIRROR_XY&#160;:&#160;<a class="el" href="group__rdp.html#gga363c9ad4c9c12367c6a635021d483ef0a3287b12d4f20f2336032c38397888195">rdp.h</a></li>
 <li>MIRROR_Y&#160;:&#160;<a class="el" href="group__rdp.html#gga363c9ad4c9c12367c6a635021d483ef0a1c9103a8c2e547a61aad005ca0c58b32">rdp.h</a></li>
 <li>mixer_add_event()&#160;:&#160;<a class="el" href="mixer_8c.html#a21ead4fd7433fbf4a328a216dc5a56a8">mixer.c</a>, <a class="el" href="mixer_8h.html#a21ead4fd7433fbf4a328a216dc5a56a8">mixer.h</a></li>
-<li>mixer_ch_get_pos()&#160;:&#160;<a class="el" href="mixer_8h.html#afc8e8eb8b434ec042c44d8159648ef39">mixer.h</a>, <a class="el" href="mixer_8c.html#afc8e8eb8b434ec042c44d8159648ef39">mixer.c</a></li>
+<li>mixer_ch_get_pos()&#160;:&#160;<a class="el" href="mixer_8c.html#afc8e8eb8b434ec042c44d8159648ef39">mixer.c</a>, <a class="el" href="mixer_8h.html#afc8e8eb8b434ec042c44d8159648ef39">mixer.h</a></li>
 <li>mixer_ch_play()&#160;:&#160;<a class="el" href="mixer_8c.html#a1aa94701f22d086d624fb7d938ba0062">mixer.c</a>, <a class="el" href="mixer_8h.html#a1aa94701f22d086d624fb7d938ba0062">mixer.h</a></li>
 <li>mixer_ch_playing()&#160;:&#160;<a class="el" href="mixer_8c.html#a1893d5fc9d44b0e37ce0ef82afb71f37">mixer.c</a>, <a class="el" href="mixer_8h.html#a1893d5fc9d44b0e37ce0ef82afb71f37">mixer.h</a></li>
-<li>mixer_ch_set_freq()&#160;:&#160;<a class="el" href="mixer_8c.html#af8c01ae2bc402901e8fbf7e61e5cd9d6">mixer.c</a>, <a class="el" href="mixer_8h.html#af8c01ae2bc402901e8fbf7e61e5cd9d6">mixer.h</a></li>
+<li>mixer_ch_set_freq()&#160;:&#160;<a class="el" href="mixer_8h.html#af8c01ae2bc402901e8fbf7e61e5cd9d6">mixer.h</a>, <a class="el" href="mixer_8c.html#af8c01ae2bc402901e8fbf7e61e5cd9d6">mixer.c</a></li>
 <li>mixer_ch_set_limits()&#160;:&#160;<a class="el" href="mixer_8c.html#aa6151c20fc5ddfa953c9d2dabe1da294">mixer.c</a>, <a class="el" href="mixer_8h.html#aa6151c20fc5ddfa953c9d2dabe1da294">mixer.h</a></li>
 <li>mixer_ch_set_pos()&#160;:&#160;<a class="el" href="mixer_8c.html#a827e0c459c6a250ccc74b977f9c64c5e">mixer.c</a>, <a class="el" href="mixer_8h.html#a827e0c459c6a250ccc74b977f9c64c5e">mixer.h</a></li>
-<li>mixer_ch_set_vol()&#160;:&#160;<a class="el" href="mixer_8h.html#a56bc7f412e9cd0cde06c44e8acaa85ae">mixer.h</a>, <a class="el" href="mixer_8c.html#a56bc7f412e9cd0cde06c44e8acaa85ae">mixer.c</a></li>
+<li>mixer_ch_set_vol()&#160;:&#160;<a class="el" href="mixer_8c.html#a56bc7f412e9cd0cde06c44e8acaa85ae">mixer.c</a>, <a class="el" href="mixer_8h.html#a56bc7f412e9cd0cde06c44e8acaa85ae">mixer.h</a></li>
 <li>mixer_ch_set_vol_dolby()&#160;:&#160;<a class="el" href="mixer_8c.html#a9cf6854f30c27595b941525a6116c617">mixer.c</a>, <a class="el" href="mixer_8h.html#a9cf6854f30c27595b941525a6116c617">mixer.h</a></li>
 <li>mixer_ch_set_vol_pan()&#160;:&#160;<a class="el" href="mixer_8c.html#a5fbe88215add4d8f5cd68807616ae9b1">mixer.c</a>, <a class="el" href="mixer_8h.html#a5fbe88215add4d8f5cd68807616ae9b1">mixer.h</a></li>
 <li>mixer_ch_stop()&#160;:&#160;<a class="el" href="mixer_8c.html#ae21b093a1283e06ede42363498c490cb">mixer.c</a>, <a class="el" href="mixer_8h.html#ae21b093a1283e06ede42363498c490cb">mixer.h</a></li>
@@ -135,14 +155,16 @@ $(function() {
 <li>mixer_remove_event()&#160;:&#160;<a class="el" href="mixer_8c.html#aab616cf94c3df83670ca62236177b246">mixer.c</a>, <a class="el" href="mixer_8h.html#aab616cf94c3df83670ca62236177b246">mixer.h</a></li>
 <li>mixer_set_vol()&#160;:&#160;<a class="el" href="mixer_8c.html#ae8ed9fdb3bfcb119d56764dd401848ba">mixer.c</a>, <a class="el" href="mixer_8h.html#ae8ed9fdb3bfcb119d56764dd401848ba">mixer.h</a></li>
 <li>MIXER_STATE_SIZE&#160;:&#160;<a class="el" href="mixer_8c.html#a5df3bed5fd6578afbe01235d44993b18">mixer.c</a></li>
+<li>mixer_throttle()&#160;:&#160;<a class="el" href="mixer_8c.html#a609e245914f93ed2070304e68b42db6a">mixer.c</a>, <a class="el" href="mixer_8h.html#a609e245914f93ed2070304e68b42db6a">mixer.h</a></li>
 <li>MIXER_TRACE&#160;:&#160;<a class="el" href="mixer_8c.html#a51055c8e74be85f62c35632ff82e869f">mixer.c</a>, <a class="el" href="samplebuffer_8c.html#a51055c8e74be85f62c35632ff82e869f">samplebuffer.c</a></li>
+<li>mixer_unthrottle()&#160;:&#160;<a class="el" href="mixer_8c.html#a6b982bb4ca20959ae4a12aec9e014c8c">mixer.c</a>, <a class="el" href="mixer_8h.html#a6b982bb4ca20959ae4a12aec9e014c8c">mixer.h</a></li>
 <li>MixerEvent&#160;:&#160;<a class="el" href="mixer_8h.html#a509fb916b04893006f91d4bc5f7fc69e">mixer.h</a></li>
 <li>move_buffer&#160;:&#160;<a class="el" href="group__console.html#ga0493bc0de60ff266e7f4e9a4256d27f0">console.c</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Feb 4 2023 15:46:56 for libdragon by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.4
+Generated on Mon Jan 22 2024 19:32:53 for libdragon by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.4
 </small></address>
 </body>
 </html>

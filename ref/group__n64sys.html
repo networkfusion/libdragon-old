@@ -162,6 +162,9 @@ Macros</h2></td></tr>
 <tr class="memitem:ga5fa34561986e5c2ba44159a362f65abb"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__n64sys.html#ga5fa34561986e5c2ba44159a362f65abb">C0_WIRED</a>()</td></tr>
 <tr class="memdesc:ga5fa34561986e5c2ba44159a362f65abb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read the COP0 WIRED register.  <a href="group__n64sys.html#ga5fa34561986e5c2ba44159a362f65abb">More...</a><br /></td></tr>
 <tr class="separator:ga5fa34561986e5c2ba44159a362f65abb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf3254bede595a8b2b76eb90c84d06328"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__n64sys.html#gaf3254bede595a8b2b76eb90c84d06328">C0_WATCHLO</a>()</td></tr>
+<tr class="memdesc:gaf3254bede595a8b2b76eb90c84d06328"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read the COP0 WATCHLO register.  <a href="group__n64sys.html#gaf3254bede595a8b2b76eb90c84d06328">More...</a><br /></td></tr>
+<tr class="separator:gaf3254bede595a8b2b76eb90c84d06328"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gace54d6bc9240a2ca470d2312fd3bd5f3"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__n64sys.html#gace54d6bc9240a2ca470d2312fd3bd5f3">C0_WRITE_WIRED</a>(x)&#160;&#160;&#160;asm volatile(&quot;mtc0 %0,$6; nop; nop&quot;::&quot;r&quot;(x))</td></tr>
 <tr class="memdesc:gace54d6bc9240a2ca470d2312fd3bd5f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the COP0 WIRED register.  <a href="group__n64sys.html#gace54d6bc9240a2ca470d2312fd3bd5f3">More...</a><br /></td></tr>
 <tr class="separator:gace54d6bc9240a2ca470d2312fd3bd5f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -312,6 +315,10 @@ Macros</h2></td></tr>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>C1_ENABLE_INVALID_OP</b>&#160;&#160;&#160;0x00000800</td></tr>
 <tr class="memdesc:ga6ff39bd710730a8b87f1ac2b552cbcb0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable invalid operation exception. <br /></td></tr>
 <tr class="separator:ga6ff39bd710730a8b87f1ac2b552cbcb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga330f336617630139290b8655da136bfc"><td class="memItemLeft" align="right" valign="top"><a id="ga330f336617630139290b8655da136bfc" name="ga330f336617630139290b8655da136bfc"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>C1_ENABLE_MASK</b>&#160;&#160;&#160;0x00000F80</td></tr>
+<tr class="memdesc:ga330f336617630139290b8655da136bfc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mask for all enable bits. <br /></td></tr>
+<tr class="separator:ga330f336617630139290b8655da136bfc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga238f18753e527278da527b5f9c27d366"><td class="memItemLeft" align="right" valign="top"><a id="ga238f18753e527278da527b5f9c27d366" name="ga238f18753e527278da527b5f9c27d366"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>C1_CAUSE_INEXACT_OP</b>&#160;&#160;&#160;0x00001000</td></tr>
 <tr class="memdesc:ga238f18753e527278da527b5f9c27d366"><td class="mdescLeft">&#160;</td><td class="mdescRight">Triggered inexact operation exception. <br /></td></tr>
@@ -336,6 +343,10 @@ Macros</h2></td></tr>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>C1_CAUSE_NOT_IMPLEMENTED</b>&#160;&#160;&#160;0x00020000</td></tr>
 <tr class="memdesc:ga38cb6567427a29005e6e26ffad360b99"><td class="mdescLeft">&#160;</td><td class="mdescRight">Triggered not implemented exception. <br /></td></tr>
 <tr class="separator:ga38cb6567427a29005e6e26ffad360b99"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga27897cffaf436801297fa3e7b1e36f43"><td class="memItemLeft" align="right" valign="top"><a id="ga27897cffaf436801297fa3e7b1e36f43" name="ga27897cffaf436801297fa3e7b1e36f43"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>C1_CAUSE_MASK</b>&#160;&#160;&#160;0x0003F000</td></tr>
+<tr class="memdesc:ga27897cffaf436801297fa3e7b1e36f43"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mask for all cause bits. <br /></td></tr>
+<tr class="separator:ga27897cffaf436801297fa3e7b1e36f43"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga920f17acde0b8103c5f3b1be01d4e58a"><td class="memItemLeft" align="right" valign="top"><a id="ga920f17acde0b8103c5f3b1be01d4e58a" name="ga920f17acde0b8103c5f3b1be01d4e58a"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>C1_FCR31_FS</b>&#160;&#160;&#160;(1&lt;&lt;24)</td></tr>
 <tr class="memdesc:ga920f17acde0b8103c5f3b1be01d4e58a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flush denormals to zero/min. <br /></td></tr>
@@ -346,8 +357,12 @@ Macros</h2></td></tr>
 <tr class="memitem:gab48e93eec5c113af76e9592b5a3042f1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__n64sys.html#gab48e93eec5c113af76e9592b5a3042f1">C1_WRITE_FCR31</a>(x)</td></tr>
 <tr class="memdesc:gab48e93eec5c113af76e9592b5a3042f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write to the COP1 FCR31 register.  <a href="group__n64sys.html#gab48e93eec5c113af76e9592b5a3042f1">More...</a><br /></td></tr>
 <tr class="separator:gab48e93eec5c113af76e9592b5a3042f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga6e477d818abebb429103b0c3101e6a92"><td class="memItemLeft" align="right" valign="top"><a id="ga6e477d818abebb429103b0c3101e6a92" name="ga6e477d818abebb429103b0c3101e6a92"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>RCP_FREQUENCY</b>&#160;&#160;&#160;(<a class="el" href="group__n64sys.html#gacd3b316e4428bf20c80fa403921feeb5">__bbplayer</a> ? 96000000 : 62500000)</td></tr>
+<tr class="memdesc:ga6e477d818abebb429103b0c3101e6a92"><td class="mdescLeft">&#160;</td><td class="mdescRight">Frequency of the RCP. <br /></td></tr>
+<tr class="separator:ga6e477d818abebb429103b0c3101e6a92"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf73acdf7fb3be35ff98322b7e827d349"><td class="memItemLeft" align="right" valign="top"><a id="gaf73acdf7fb3be35ff98322b7e827d349" name="gaf73acdf7fb3be35ff98322b7e827d349"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>CPU_FREQUENCY</b>&#160;&#160;&#160;(<a class="el" href="group__n64sys.html#gacd3b316e4428bf20c80fa403921feeb5">__bbplayer</a> ? 140625000 : 93750000)</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>CPU_FREQUENCY</b>&#160;&#160;&#160;(<a class="el" href="group__n64sys.html#gacd3b316e4428bf20c80fa403921feeb5">__bbplayer</a> ? 144000000 : 93750000)</td></tr>
 <tr class="memdesc:gaf73acdf7fb3be35ff98322b7e827d349"><td class="mdescLeft">&#160;</td><td class="mdescRight">Frequency of the MIPS R4300 CPU. <br /></td></tr>
 <tr class="separator:gaf73acdf7fb3be35ff98322b7e827d349"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3f0580f61dc7654194a76aed5b60b362"><td class="memItemLeft" align="right" valign="top"><a id="ga3f0580f61dc7654194a76aed5b60b362" name="ga3f0580f61dc7654194a76aed5b60b362"></a>
@@ -376,7 +391,7 @@ Macros</h2></td></tr>
 <tr class="memdesc:ga54fca3c0f8e1be138f320b3dcce4366f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the physical memory address for a given address.  <a href="group__n64sys.html#ga54fca3c0f8e1be138f320b3dcce4366f">More...</a><br /></td></tr>
 <tr class="separator:ga54fca3c0f8e1be138f320b3dcce4366f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaa83770c8bb3d7811f16af764871ed75f"><td class="memItemLeft" align="right" valign="top"><a id="gaa83770c8bb3d7811f16af764871ed75f" name="gaa83770c8bb3d7811f16af764871ed75f"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>HEAP_START_ADDR</b>&#160;&#160;&#160;((void*)<a class="el" href="group__n64sys.html#ga4e07cc711f6f6d1853ee441b43cb54cb">__rom_end</a>)</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>HEAP_START_ADDR</b>&#160;&#160;&#160;((void*)<a class="el" href="group__n64sys.html#gad07593be6cf1d4ebe605cbdb85f8956b">__bss_end</a>)</td></tr>
 <tr class="memdesc:gaa83770c8bb3d7811f16af764871ed75f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Void pointer to the start of heap memory. <br /></td></tr>
 <tr class="separator:gaa83770c8bb3d7811f16af764871ed75f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga56d4cbe1e093c683432a147eb1ccb293"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__n64sys.html#ga56d4cbe1e093c683432a147eb1ccb293">MEMORY_BARRIER</a>()&#160;&#160;&#160;asm volatile (&quot;&quot; : : : &quot;memory&quot;)</td></tr>
@@ -483,6 +498,12 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>__data_cache_hit_inva
 void&#160;</td><td class="memItemRight" valign="bottom"><b>__init_cop1</b> ()</td></tr>
 <tr class="memdesc:ga6d93c103e363e706bdafdc30601fcedd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize COP1 with default settings that prevent undesirable exceptions. <br /></td></tr>
 <tr class="separator:ga6d93c103e363e706bdafdc30601fcedd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2d061fe138e49ae71e8716e35c0d3dc9"><td class="memItemLeft" align="right" valign="top">volatile unsigned long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__n64sys.html#ga2d061fe138e49ae71e8716e35c0d3dc9">get_ticks</a> (void)</td></tr>
+<tr class="memdesc:ga2d061fe138e49ae71e8716e35c0d3dc9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read the number of ticks since system startup.  <a href="group__n64sys.html#ga2d061fe138e49ae71e8716e35c0d3dc9">More...</a><br /></td></tr>
+<tr class="separator:ga2d061fe138e49ae71e8716e35c0d3dc9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga94e97719a22e4dbbe64f6264e82119a5"><td class="memItemLeft" align="right" valign="top">volatile unsigned long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__n64sys.html#ga94e97719a22e4dbbe64f6264e82119a5">get_ticks_ms</a> (void)</td></tr>
+<tr class="memdesc:ga94e97719a22e4dbbe64f6264e82119a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read the number of millisecounds since system startup.  <a href="group__n64sys.html#ga94e97719a22e4dbbe64f6264e82119a5">More...</a><br /></td></tr>
+<tr class="separator:ga94e97719a22e4dbbe64f6264e82119a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -497,10 +518,37 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>__bbplayer</b> = 0</td
 int&#160;</td><td class="memItemRight" valign="bottom"><b>__bbplayer</b></td></tr>
 <tr class="memdesc:gacd3b316e4428bf20c80fa403921feeb5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Indicates whether we are running on a vanilla N64 or a iQue player. <br /></td></tr>
 <tr class="separator:gacd3b316e4428bf20c80fa403921feeb5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaeee0500fc15a8edadab5e50494669416"><td class="memItemLeft" align="right" valign="top"><a id="gaeee0500fc15a8edadab5e50494669416" name="gaeee0500fc15a8edadab5e50494669416"></a>
+char&#160;</td><td class="memItemRight" valign="bottom"><b>__libdragon_text_start</b> []</td></tr>
+<tr class="memdesc:gaeee0500fc15a8edadab5e50494669416"><td class="mdescLeft">&#160;</td><td class="mdescRight">Symbol at the start of code (start of ROM contents after header) <br /></td></tr>
+<tr class="separator:gaeee0500fc15a8edadab5e50494669416"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga4e07cc711f6f6d1853ee441b43cb54cb"><td class="memItemLeft" align="right" valign="top"><a id="ga4e07cc711f6f6d1853ee441b43cb54cb" name="ga4e07cc711f6f6d1853ee441b43cb54cb"></a>
 char&#160;</td><td class="memItemRight" valign="bottom"><b>__rom_end</b> []</td></tr>
 <tr class="memdesc:ga4e07cc711f6f6d1853ee441b43cb54cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Symbol at the end of code, data, and sdata (set by the linker) <br /></td></tr>
 <tr class="separator:ga4e07cc711f6f6d1853ee441b43cb54cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad07593be6cf1d4ebe605cbdb85f8956b"><td class="memItemLeft" align="right" valign="top"><a id="gad07593be6cf1d4ebe605cbdb85f8956b" name="gad07593be6cf1d4ebe605cbdb85f8956b"></a>
+char&#160;</td><td class="memItemRight" valign="bottom"><b>__bss_end</b> []</td></tr>
+<tr class="memdesc:gad07593be6cf1d4ebe605cbdb85f8956b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Symbol at the end of code, data, sdata, and bss (set by the linker) <br /></td></tr>
+<tr class="separator:gad07593be6cf1d4ebe605cbdb85f8956b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader">64-bit address space access</h2></td></tr>
+<tr><td class="ititle" colspan="2"><p >Functions to access the full 64-bit address space</p>
+<p >Libdragon uses the O64 ABI, in which pointers are 32-bit wide. This is the right choice for basically all standard use cases because doubling the size of the pointers would waste more memory in all data structures where pointers are stored.</p>
+<p >The VR4300 CPU does support a full 64-bit virtual address space though, which might be used for some very niche use case (like e.g. emulator tests) Since it is not possible to create a 64-bit pointer in C because of the chosen ABI, these functions are provided in substitution.</p>
+<p >The virtual address must be provided as a 64-bit integer. </p>
+</td></tr>
+<tr class="memitem:gaf295299980b5f471c0ddcacfe33bbf88"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__n64sys.html#gaf295299980b5f471c0ddcacfe33bbf88">mem_read8</a> (uint64_t vaddr)</td></tr>
+<tr class="memdesc:gaf295299980b5f471c0ddcacfe33bbf88"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a 8-bit value from memory at the given 64-bit virtual address.  <a href="group__n64sys.html#gaf295299980b5f471c0ddcacfe33bbf88">More...</a><br /></td></tr>
+<tr class="separator:gaf295299980b5f471c0ddcacfe33bbf88"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2aea92b793cb2cb0024e3c3f76f42f86"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__n64sys.html#ga2aea92b793cb2cb0024e3c3f76f42f86">mem_read16</a> (uint64_t vaddr)</td></tr>
+<tr class="memdesc:ga2aea92b793cb2cb0024e3c3f76f42f86"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a 16-bit value from memory at the given 64-bit virtual address.  <a href="group__n64sys.html#ga2aea92b793cb2cb0024e3c3f76f42f86">More...</a><br /></td></tr>
+<tr class="separator:ga2aea92b793cb2cb0024e3c3f76f42f86"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad2e40ee85f2dc2bce6569642eeab7316"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__n64sys.html#gad2e40ee85f2dc2bce6569642eeab7316">mem_read32</a> (uint64_t vaddr)</td></tr>
+<tr class="memdesc:gad2e40ee85f2dc2bce6569642eeab7316"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a 32-bit value from memory at the given 64-bit virtual address.  <a href="group__n64sys.html#gad2e40ee85f2dc2bce6569642eeab7316">More...</a><br /></td></tr>
+<tr class="separator:gad2e40ee85f2dc2bce6569642eeab7316"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4c66990ca4a34f67cc1bbcb3a21e46be"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__n64sys.html#ga4c66990ca4a34f67cc1bbcb3a21e46be">mem_read64</a> (uint64_t vaddr)</td></tr>
+<tr class="memdesc:ga4c66990ca4a34f67cc1bbcb3a21e46be"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a 64-bit value from memory at the given 64-bit virtual address.  <a href="group__n64sys.html#ga4c66990ca4a34f67cc1bbcb3a21e46be">More...</a><br /></td></tr>
+<tr class="separator:ga4c66990ca4a34f67cc1bbcb3a21e46be"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p >N64 bootup and cache interfaces. </p>
@@ -1044,6 +1092,31 @@ char&#160;</td><td class="memItemRight" valign="bottom"><b>__rom_end</b> []</td>
 </div><!-- fragment -->
 <p>Read the COP0 WIRED register. </p>
 <p >This register is used during TLB programming. It allows to partition TLB slots between fixed slots and random slots. The fixed slot pool is the range [0..WIRED[ and the random pool is the range [WIRED..32[ </p>
+
+</div>
+</div>
+<a id="gaf3254bede595a8b2b76eb90c84d06328" name="gaf3254bede595a8b2b76eb90c84d06328"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf3254bede595a8b2b76eb90c84d06328">&#9670;&nbsp;</a></span>C0_WATCHLO</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define C0_WATCHLO</td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">    ({ \</div>
+<div class="line">    uint32_t x; \</div>
+<div class="line">    asm <span class="keyword">volatile</span>(<span class="stringliteral">&quot;mfc0 %0,$18&quot;</span>:<span class="stringliteral">&quot;=r&quot;</span>(x)); \</div>
+<div class="line">    x; \</div>
+<div class="line">})</div>
+</div><!-- fragment -->
+<p>Read the COP0 WATCHLO register. </p>
+<p >This register is used during watchpoint programming. It allows to trigger an exception when a memory access occurs on a specific memory location. </p>
 
 </div>
 </div>
@@ -2130,6 +2203,206 @@ char&#160;</td><td class="memItemRight" valign="bottom"><b>__rom_end</b> []</td>
 
 </div>
 </div>
+<a id="ga2d061fe138e49ae71e8716e35c0d3dc9" name="ga2d061fe138e49ae71e8716e35c0d3dc9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga2d061fe138e49ae71e8716e35c0d3dc9">&#9670;&nbsp;</a></span>get_ticks()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">volatile unsigned long get_ticks </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read the number of ticks since system startup. </p>
+<dl class="section note"><dt>Note</dt><dd>Also see the TICKS_READ macro</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The number of ticks since system startup </dd></dl>
+
+</div>
+</div>
+<a id="ga94e97719a22e4dbbe64f6264e82119a5" name="ga94e97719a22e4dbbe64f6264e82119a5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga94e97719a22e4dbbe64f6264e82119a5">&#9670;&nbsp;</a></span>get_ticks_ms()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">volatile unsigned long get_ticks_ms </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read the number of millisecounds since system startup. </p>
+<dl class="section note"><dt>Note</dt><dd>It will wrap back to 0 after about 91.6 seconds. Also see the TICKS_READ macro. Do not use for comparison without special handling.</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The number of millisecounds since system startup </dd></dl>
+
+</div>
+</div>
+<a id="gaf295299980b5f471c0ddcacfe33bbf88" name="gaf295299980b5f471c0ddcacfe33bbf88"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf295299980b5f471c0ddcacfe33bbf88">&#9670;&nbsp;</a></span>mem_read8()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint8_t mem_read8 </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>vaddr</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read a 8-bit value from memory at the given 64-bit virtual address. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">vaddr</td><td>64-bit virtual address </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the read value </dd></dl>
+
+</div>
+</div>
+<a id="ga2aea92b793cb2cb0024e3c3f76f42f86" name="ga2aea92b793cb2cb0024e3c3f76f42f86"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga2aea92b793cb2cb0024e3c3f76f42f86">&#9670;&nbsp;</a></span>mem_read16()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t mem_read16 </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>vaddr</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read a 16-bit value from memory at the given 64-bit virtual address. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">vaddr</td><td>64-bit virtual address </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the read value </dd></dl>
+
+</div>
+</div>
+<a id="gad2e40ee85f2dc2bce6569642eeab7316" name="gad2e40ee85f2dc2bce6569642eeab7316"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gad2e40ee85f2dc2bce6569642eeab7316">&#9670;&nbsp;</a></span>mem_read32()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t mem_read32 </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>vaddr</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read a 32-bit value from memory at the given 64-bit virtual address. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">vaddr</td><td>64-bit virtual address </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the read value </dd></dl>
+
+</div>
+</div>
+<a id="ga4c66990ca4a34f67cc1bbcb3a21e46be" name="ga4c66990ca4a34f67cc1bbcb3a21e46be"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga4c66990ca4a34f67cc1bbcb3a21e46be">&#9670;&nbsp;</a></span>mem_read64()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint64_t mem_read64 </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>vaddr</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read a 64-bit value from memory at the given 64-bit virtual address. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">vaddr</td><td>64-bit virtual address </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the read value </dd></dl>
+
+</div>
+</div>
 <h2 class="groupheader">Variable Documentation</h2>
 <a id="ga7bde5bc5b3121ab6d4d1293f29a2718b" name="ga7bde5bc5b3121ab6d4d1293f29a2718b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga7bde5bc5b3121ab6d4d1293f29a2718b">&#9670;&nbsp;</a></span>__bootcic</h2>
@@ -2151,7 +2424,7 @@ char&#160;</td><td class="memItemRight" valign="bottom"><b>__rom_end</b> []</td>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Feb 4 2023 15:46:55 for libdragon by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.4
+Generated on Mon Jan 22 2024 19:32:52 for libdragon by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.4
 </small></address>
 </body>
 </html>

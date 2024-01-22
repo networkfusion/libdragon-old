@@ -230,6 +230,12 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>mixer_ch_playing</b> 
 <tr class="memitem:aab616cf94c3df83670ca62236177b246"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mixer_8c.html#aab616cf94c3df83670ca62236177b246">mixer_remove_event</a> (<a class="el" href="mixer_8h.html#a509fb916b04893006f91d4bc5f7fc69e">MixerEvent</a> cb, void *ctx)</td></tr>
 <tr class="memdesc:aab616cf94c3df83670ca62236177b246"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deregister a time-based event from the mixer.  <a href="mixer_8c.html#aab616cf94c3df83670ca62236177b246">More...</a><br /></td></tr>
 <tr class="separator:aab616cf94c3df83670ca62236177b246"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a609e245914f93ed2070304e68b42db6a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mixer_8c.html#a609e245914f93ed2070304e68b42db6a">mixer_throttle</a> (float num_samples)</td></tr>
+<tr class="memdesc:a609e245914f93ed2070304e68b42db6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Throttle the mixer by specifying the maximum number of samples it can generate.  <a href="mixer_8c.html#a609e245914f93ed2070304e68b42db6a">More...</a><br /></td></tr>
+<tr class="separator:a609e245914f93ed2070304e68b42db6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6b982bb4ca20959ae4a12aec9e014c8c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mixer_8c.html#a6b982bb4ca20959ae4a12aec9e014c8c">mixer_unthrottle</a> (void)</td></tr>
+<tr class="memdesc:a6b982bb4ca20959ae4a12aec9e014c8c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unthrottle the mixer.  <a href="mixer_8c.html#a6b982bb4ca20959ae4a12aec9e014c8c">More...</a><br /></td></tr>
+<tr class="separator:a6b982bb4ca20959ae4a12aec9e014c8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ace40b3a7cefa9951fb5f956ca0afa2ac"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mixer_8c.html#ace40b3a7cefa9951fb5f956ca0afa2ac">mixer_poll</a> (int16_t *out16, int num_samples)</td></tr>
 <tr class="memdesc:ace40b3a7cefa9951fb5f956ca0afa2ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run the mixer to produce output samples.  <a href="mixer_8c.html#ace40b3a7cefa9951fb5f956ca0afa2ac">More...</a><br /></td></tr>
 <tr class="separator:ace40b3a7cefa9951fb5f956ca0afa2ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -240,6 +246,10 @@ Variables</h2></td></tr>
 int64_t&#160;</td><td class="memItemRight" valign="bottom"><b>__mixer_profile_rsp</b> = 0</td></tr>
 <tr class="memdesc:adb6462ba394e665c815abb852d8e341f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Count of ticks spent in mixer RSP, used for debugging purposes. <br /></td></tr>
 <tr class="separator:adb6462ba394e665c815abb852d8e341f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a728b6be978ab3d502aa747add3151db3"><td class="memItemLeft" align="right" valign="top"><a id="a728b6be978ab3d502aa747add3151db3" name="a728b6be978ab3d502aa747add3151db3"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>__mixer_overlay_id</b></td></tr>
+<tr class="memdesc:a728b6be978ab3d502aa747add3151db3"><td class="mdescLeft">&#160;</td><td class="mdescRight">RSPQ overlay ID assigned to the mixer ucode. <br /></td></tr>
+<tr class="separator:a728b6be978ab3d502aa747add3151db3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >RSP Audio mixer. </p>
@@ -583,7 +593,7 @@ Opaque context pointer to pass to the callback. </td></tr>
 
 <p>Change the frequency for the specified channel. </p>
 <p >By default, the frequency is the one required by the waveform associated to the channel, but this function allows to override.</p>
-<p >This function must be called after mixer_ch_play, as otherwise the frequency is reset to the default of the waveform.</p>
+<p >This function must be called after <a class="el" href="mixer_8h.html#a1aa94701f22d086d624fb7d938ba0062" title="Start playing the specified waveform on the specified channel.">mixer_ch_play</a>, as otherwise the frequency is reset to the default of the waveform.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">ch</td><td>Channel index </td></tr>
@@ -825,7 +835,7 @@ Opaque context pointer to pass to the callback. </td></tr>
 
 <p>Change the current playback position within a waveform. </p>
 <p >This function can be useful to seek to a specific point of the waveform. The position must be specified in number of samples (not bytes). Fractional values account for accurate resampling position.</p>
-<p >This function must be called after mixer_ch_play, as otherwise the position is reset to the beginning of the waveform.</p>
+<p >This function must be called after <a class="el" href="mixer_8h.html#a1aa94701f22d086d624fb7d938ba0062" title="Start playing the specified waveform on the specified channel.">mixer_ch_play</a>, as otherwise the position is reset to the beginning of the waveform.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">ch</td><td>Channel index </td></tr>
@@ -1002,6 +1012,60 @@ Opaque context pointer to pass to the callback. </td></tr>
 
 </div>
 </div>
+<a id="a609e245914f93ed2070304e68b42db6a" name="a609e245914f93ed2070304e68b42db6a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a609e245914f93ed2070304e68b42db6a">&#9670;&nbsp;</a></span>mixer_throttle()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mixer_throttle </td>
+          <td>(</td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>num_samples</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Throttle the mixer by specifying the maximum number of samples it can generate. </p>
+<p >This is an advanced function that should only be called to achieve perfect sync between a possibly slowing-down video and audio.</p>
+<p >Normally, once the mixer is initiated and assuming mixer_poll is called frequently enough, the audio will playback uninterrupted, irrespective of any slow down in the main loop. This is the expected behavior for background music for instance, but it does not work for video players or cut-scenes in which the music must be perfectly synchronized with the video. If the video happens to slowdown, the music will desynchronize.</p>
+<p >mixer_throttle sets a budget of samples that the mixer is allowed to generate. Every time the function is called, the specified number of samples is added to the budget. Every time the mixer playbacks the channel, the budget is decreased. If the budget reaches zero, the mixer will automatically pause playback until the budget is increased again, possibly creating audio cracks.</p>
+<p >To achieve perfect sync, call <a class="el" href="mixer_8h.html#a609e245914f93ed2070304e68b42db6a" title="Throttle the mixer by specifying the maximum number of samples it can generate.">mixer_throttle</a> every time a video frame was generated, and pass the maximum number of samples that the mixer is allowed to produce. Typically, you will want to pass the audio samplerate divided by the video framerate, which corresponds to the number of audio samples per video frame.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">num_samples</td><td>Number of new samples that the mixer is allowed to produce for this channel. This will be added to whatever allowance was left.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="mixer_8h.html#a6b982bb4ca20959ae4a12aec9e014c8c" title="Unthrottle the mixer.">mixer_unthrottle</a> </dd></dl>
+
+</div>
+</div>
+<a id="a6b982bb4ca20959ae4a12aec9e014c8c" name="a6b982bb4ca20959ae4a12aec9e014c8c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6b982bb4ca20959ae4a12aec9e014c8c">&#9670;&nbsp;</a></span>mixer_unthrottle()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mixer_unthrottle </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Unthrottle the mixer. </p>
+<p >Switch back the mixer to the default unthrottled status, after some calls to <a class="el" href="mixer_8h.html#a609e245914f93ed2070304e68b42db6a" title="Throttle the mixer by specifying the maximum number of samples it can generate.">mixer_throttle</a>.</p>
+<p >After calling <a class="el" href="mixer_8h.html#a6b982bb4ca20959ae4a12aec9e014c8c" title="Unthrottle the mixer.">mixer_unthrottle</a>, the mixer will no longer be limited and will produce all the samples requested via <a class="el" href="mixer_8h.html#a49057735de9c408b332975d72c05390c" title="Run the mixer to produce output samples.">mixer_poll</a>.</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="mixer_8h.html#a609e245914f93ed2070304e68b42db6a" title="Throttle the mixer by specifying the maximum number of samples it can generate.">mixer_throttle</a> </dd></dl>
+
+</div>
+</div>
 <a id="ace40b3a7cefa9951fb5f956ca0afa2ac" name="ace40b3a7cefa9951fb5f956ca0afa2ac"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ace40b3a7cefa9951fb5f956ca0afa2ac">&#9670;&nbsp;</a></span>mixer_poll()</h2>
 
@@ -1033,6 +1097,7 @@ Opaque context pointer to pass to the callback. </td></tr>
 <p >A common pattern would be to call <a class="el" href="group__audio.html#ga8aee840f13aa6903fef4c092d0ffa704" title="Start writing to the first free internal buffer.">audio_write_begin</a> to obtain an audio buffer's pointer, and pass it to mixer_poll.</p>
 <p >mixer_poll performs mixing using RSP. If RSP is busy, mixer_poll will spin-wait until the RSP is free, to perform audio processing.</p>
 <p >Since the N64 AI can only be fed with an even number of samples, mixer_poll does not accept odd numbers.</p>
+<p >This function will respect throttling, if configured via <a class="el" href="mixer_8h.html#a609e245914f93ed2070304e68b42db6a" title="Throttle the mixer by specifying the maximum number of samples it can generate.">mixer_throttle</a>. In this case, it may produce less samples than requested, depending on the current allowance. The rest of the output buffer will be zeroed.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">out</td><td>Output buffer were samples will be written. </td></tr>
@@ -1046,7 +1111,7 @@ Opaque context pointer to pass to the callback. </td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Feb 4 2023 15:46:55 for libdragon by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.4
+Generated on Mon Jan 22 2024 19:32:52 for libdragon by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.4
 </small></address>
 </body>
 </html>

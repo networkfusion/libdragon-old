@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['joybus_20subsystem_0',['Joybus Subsystem',['../group__joybus.html',1,'']]]
+  ['fast_20math_20routines_0',['Fast math routines',['../group__fastmath.html',1,'']]]
 ];

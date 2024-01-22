@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['uncached_5faddr_0',['UNCACHED_ADDR',['../display_8c.html#a1f0aa60f6fbc023029f8d0de267f26c9',1,'display.c']]]
+  ['num_5fbuffers_0',['NUM_BUFFERS',['../display_8c.html#aac028f4c15ac7f78a44be5db76cfbec7',1,'display.c']]]
 ];

@@ -178,6 +178,13 @@ ridx</td>
 <p >Read pointer in the sample buffer (expressed as index of samples). It remembers which sample was last read. Assuming a forward streaming, it is used by the sample buffer to discard unused samples when not needed anymore. </p>
 </td></tr>
 <tr><td class="fieldtype">
+<a id="aba83de716010d8ba758a9be365af0fa4" name="aba83de716010d8ba758a9be365af0fa4"></a>int</td>
+<td class="fieldname">
+wnext</td>
+<td class="fielddoc">
+<p >Value of the "next" sample to be loaded into the sample buffer, to continue a linear reading. This is used to notify the wv_read function whether a seeking was performed or not. </p>
+</td></tr>
+<tr><td class="fieldtype">
 <a id="a9bc76559025664618f3fcc8c3abde8e5" name="a9bc76559025664618f3fcc8c3abde8e5"></a><a class="el" href="mixer_8h.html#ab0e995bf04880a3e14f689f48fdb2475">WaveformRead</a></td>
 <td class="fieldname">
 wv_read</td>
@@ -589,7 +596,7 @@ wv_ctx</td>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Feb 4 2023 15:46:55 for libdragon by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.4
+Generated on Mon Jan 22 2024 19:32:52 for libdragon by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.4
 </small></address>
 </body>
 </html>
