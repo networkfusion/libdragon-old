@@ -37,6 +37,15 @@ jobs:
       Build_Directory: libdragon
 
     steps:
+
+      - name: Install native system build dependencies
+        if: ${{ matrix.host-os == 'macos-14' }}
+        run: |
+          sudo adduser github-ci
+          usermod -aG sudo github-ci
+        continue-on-error: true
+
+
       - name: Install native system build dependencies
         run: |
           sudo apt-get install libmpfr-dev
