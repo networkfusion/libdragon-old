@@ -1,4 +1,4 @@
-name: Build-Native
+name: Build-Toolchain-Native
 
 # This workflow will build the libdragon N64 GCC toolchain to keep it up-to-date.
 on:
@@ -15,7 +15,6 @@ jobs:
   Build-Toolchain:
     # targets the oldest ubuntu image available to create valid packages for as many versions possible.
     # TODO: move to using a docker container to support older versions.
-    runs-on: ubuntu-20.04
     outputs:
       gcc-version: ${{ steps.gcc-version-generator.outputs.GCC_VERSION }}
       newlib-version: ${{ steps.gcc-version-generator.outputs.NEWLIB_VERSION }}
@@ -28,9 +27,11 @@ jobs:
       fail-fast: false
       matrix:
         include: [
-          { target-platform: Windows-x86_64, host: x86_64-w64-mingw32, makefile-version: 4.4 },
-          { target-platform: Linux-x86_64, host: '', makefile-version: '' }
+          { host-os: ubuntu-latest, target-platform: Windows-x86_64, host: x86_64-w64-mingw32, makefile-version: 4.4 },
+          { host-os: ubuntu-20.04, target-platform: Linux-x86_64, host: '', makefile-version: '' },
+          { host-os: macos-14, target-platform: Linux-arm64, host: '', makefile-version: '' }
         ]
+    runs-on: ${{ matrix.host-os }}
 
     env:
       Build_Directory: libdragon
@@ -57,7 +58,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
-          ruby-version: '3.1'
+          ruby-version: '3.3'
         continue-on-error: true
 
       - name: Install Package Creator
@@ -239,8 +240,8 @@ jobs:
           zip -r -q ${{ runner.temp }}/gcc-toolchain-mips64-win64.zip *
 
       - name: Generate Release
-        if: github.ref == 'refs/heads/trunk'
-        uses: softprops/action-gh-release@v1
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
         with:
           draft: false
           prerelease: false
