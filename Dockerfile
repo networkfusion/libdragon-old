@@ -2,7 +2,11 @@
 # V0 - Use this comment to force a re-build without changing the contents
 
 # Stage 1 - Build the toolchain
-FROM ubuntu:22.04
+FROM --platform=$BUILDPLATFORM ubuntu:latest
+
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
+RUN echo "I am running on $BUILDPLATFORM, building for $TARGETPLATFORM" > /log
 
 # Setup paths for the libdragon toolchain
 ARG N64_INST=/n64_toolchain
@@ -21,7 +25,8 @@ RUN apt-get install -yq \
     libmpc-dev \
     zlib1g-dev \
     texinfo \
-    git
+    git \
+    gcc-multilib
 
 # Build toolchain
 COPY ./tools/build-toolchain.sh /tmp/tools/build-toolchain.sh
@@ -33,7 +38,7 @@ RUN rm -rf ${N64_INST}/share/locale/*
 
 
 # Stage 2 - Prepare minimal image
-FROM ubuntu:22.04
+FROM ubuntu:latest
 
 # Setup paths for the libdragon toolchain
 ARG N64_INST=/n64_toolchain
