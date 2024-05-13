@@ -25,6 +25,7 @@ all:
 # Avoid many warnings for vendored code that we don't intend to ever modify
 common/shrinkler_compress.o: 	   CFLAGS += -Wno-all -Wno-error
 mkfont/freetype/FreeTypeAmalgam.o: CFLAGS += -Wno-all -Wno-error
+audioconv64/audioconv64.o: CFLAGS += -Wno-all -Wno-error
 
 common-clean:
 	rm -f common/*.o common/*.a common/*.d
