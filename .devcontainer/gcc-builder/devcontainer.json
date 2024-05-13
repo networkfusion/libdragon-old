@@ -1,0 +1,22 @@
+{
+	"name": "libdragon-GCC",
+	"dockerFile": "Dockerfile.GCC_Build",
+	"context": ".",
+	"mounts": [
+		// Bind the Unix socket the Docker daemon listens on by default
+		"source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
+		// Keep command history 
+		"source=libdragon-bashhistory,target=/home/vscode/commandhistory,type=volume",
+	],
+	// Set the *default* container specific settings.json values on container create.
+	"customizations": {
+		"vscode": {
+			"settings": {
+			},
+			// Add the IDs of extensions you want installed when the container is created.
+			"extensions": [
+			]
+		}
+	},
+	"postStartCommand": "./tools/build-toolchain.sh"
+}

@@ -25,8 +25,7 @@ RUN apt-get install -yq \
     libmpc-dev \
     zlib1g-dev \
     texinfo \
-    git \
-    gcc-multilib
+    git
 
 # Build toolchain
 COPY ./tools/build-toolchain.sh /tmp/tools/build-toolchain.sh
@@ -38,7 +37,11 @@ RUN rm -rf ${N64_INST}/share/locale/*
 
 
 # Stage 2 - Prepare minimal image
-FROM ubuntu:latest
+FROM --platform=$BUILDPLATFORM ubuntu:latest
+
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
+RUN echo "I am running on $BUILDPLATFORM, building for $TARGETPLATFORM" > /log
 
 # Setup paths for the libdragon toolchain
 ARG N64_INST=/n64_toolchain

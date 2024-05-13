@@ -1,5 +1,5 @@
 #! /bin/bash
-# N64 MIPS GCC toolchain build/install script for Unix distributions
+# N64 MIPS GCC toolchain build/install script for Unix * distributions
 # (c) 2012-2024 DragonMinded and libDragon Contributors.
 # See the root folder for license information.
 

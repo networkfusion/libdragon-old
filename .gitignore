@@ -13,6 +13,7 @@ tools/n64tool
 tools/n64sym
 tools/**/*.exe
 website/ref/
+toolchain/
 
 ## Generated assets
 examples/fontdemo/filesystem/*.font64
