@@ -5,11 +5,12 @@ on:
   # This action will take about 40-70 minutes to run!
   # It is designed to only fire if the GCC toolchain build file changes.
   push:
-    paths:
-      - 'tools/build-toolchain.sh'
-  pull_request:
-    paths:
-      - 'tools/build-toolchain.sh'
+  # FIXME: revert before merge. These are commented out to ensure builds happen for mac
+  #   paths:
+  #     - 'tools/build-toolchain.sh'
+  # pull_request:
+  #   paths:
+  #     - 'tools/build-toolchain.sh'
   
 jobs:
   Build-Toolchain:
