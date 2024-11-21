@@ -63,7 +63,7 @@ typedef enum {
  * For example, when displaying on CRT TVs, one can add borders around a framebuffer so
  * that the whole image can be seen on the screen. 
  * 
- * If no borders are applied, the output will use the entire NSTC/PAL region space
+ * If no borders are applied, the output will use the entire NTSC/PAL region space
  * for showing a framebuffer, useful for emulators, upscalers, and LCD TVs.
  */
 typedef struct vi_borders_s{
@@ -102,8 +102,9 @@ typedef struct {
      * visible on the screen.
      * 
      * Screen resolution is not affected by it. Due to the way VI scaling works,
-     * it is advisable to not use the #FILTERS_DISABLED for your display if borders
-     * are enabled.
+     * it is advisable to not use the #FILTERS_DISABLED option for your display
+     * if borders are enabled because no bilinear resampling means VI is likely
+     * to output unevenly thick columns of pixels or skip some scanlines.
      */
     vi_borders_t vi_borders;
 } resolution_t;
