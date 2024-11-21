@@ -55,6 +55,22 @@ typedef enum {
 } interlace_mode_t;
 
 /**
+ * @brief Video Interface borders structure
+ *
+ * This structure defines how thick (in dots) should the borders around a framebuffer be.
+ * The dots always assume VI scale (that is 640x480 NTSC or 640x576 PAL)
+ * and the framebuffer will be scaled to fit under them.
+ * For example, when displaying on CRT TVs, one can add borders around a framebuffer so
+ * that the whole image can be seen on the screen. 
+ * 
+ * If no borders are applied, the output will use the entire NSTC/PAL region space
+ * for showing a framebuffer, useful for emulators, upscalers, and LCD TVs.
+ */
+typedef struct vi_borders_s{
+    uint16_t left, right, up, down;
+} vi_borders_t;
+
+/**
  * @brief Video resolution structure
  *
  * You can either use one of the pre-defined constants
@@ -78,23 +94,47 @@ typedef struct {
      * Setting this variable to true on NTSC/MPAL will have no effect.
      */
     bool pal60;
+    /**
+     * @brief 
+     * 
+     * This setting will enable additional borders around your display to cover
+     * the overscan margin of some CRT TVs to help ensure your entire frame is
+     * visible on the screen.
+     * 
+     * Screen resolution is not affected by it. Due to the way VI scaling works,
+     * it is advisable to not use the #FILTERS_DISABLED for your display if borders
+     * are enabled.
+     */
+    vi_borders_t vi_borders;
 } resolution_t;
 
 ///@cond
 #define const static const /* fool doxygen to document these static members */
 ///@endcond
+/**
+ * @brief
+ * No VI borders defined. Useful when outputing for emulators, upscalers, or LCD TVs.
+ */
+const vi_borders_t VI_BORDERS_NONE = {0, 0, 0, 0};
+/**
+ * @brief
+ * VI border preset that leaves a 5% margin on each side. Useful when outputing
+ * for CRT TVs in order to account for possible overscan to ensure the frame is
+ * visible on the screen.
+ */
+const vi_borders_t VI_BORDERS_CRT = {32, 32, 24, 24};
 /** @brief 256x240 mode */
-const resolution_t RESOLUTION_256x240 = {256, 240, INTERLACE_OFF};
+const resolution_t RESOLUTION_256x240 = {.width = 256, .height = 240, .interlaced = INTERLACE_OFF, .vi_borders = VI_BORDERS_NONE};
 /** @brief 320x240 mode */
-const resolution_t RESOLUTION_320x240 = {320, 240, INTERLACE_OFF};
+const resolution_t RESOLUTION_320x240 = {.width = 320, .height = 240, .interlaced = INTERLACE_OFF, .vi_borders = VI_BORDERS_NONE};
 /** @brief 512x240 mode, high-res progressive */
-const resolution_t RESOLUTION_512x240 = {512, 240, INTERLACE_OFF};
+const resolution_t RESOLUTION_512x240 = {.width = 512, .height = 240, .interlaced = INTERLACE_OFF, .vi_borders = VI_BORDERS_NONE};
 /** @brief 640x240 mode, high-res progressive */
-const resolution_t RESOLUTION_640x240 = {640, 240, INTERLACE_OFF};
+const resolution_t RESOLUTION_640x240 = {.width = 640, .height = 240, .interlaced = INTERLACE_OFF, .vi_borders = VI_BORDERS_NONE};
 /** @brief 512x480 mode, interlaced */
-const resolution_t RESOLUTION_512x480 = {512, 480, INTERLACE_HALF};
+const resolution_t RESOLUTION_512x480 = {.width = 512, .height = 480, .interlaced = INTERLACE_HALF, .vi_borders = VI_BORDERS_NONE};
 /** @brief 640x480 mode, interlaced */
-const resolution_t RESOLUTION_640x480 = {640, 480, INTERLACE_HALF};
+const resolution_t RESOLUTION_640x480 = {.width = 640, .height = 480, .interlaced = INTERLACE_HALF, .vi_borders = VI_BORDERS_NONE};
 #undef const
 
 /** @brief Valid bit depths */

@@ -194,15 +194,11 @@ typedef struct vi_config_s{
 
 /**  Under VI_X_SCALE   */
 /** @brief VI_X_SCALE Register: set 1/horizontal scale up factor (value is converted to 2.10 format) */
-#define VI_X_SCALE_SET(value)               (( 1024*(value) + 320 ) / 640)
+#define VI_X_SCALE_SET(from, to)            ((1024 * (from) + (to) / 2 ) / (to))
 
 /**  Under VI_Y_SCALE   */
 /** @brief VI_Y_SCALE Register: set 1/vertical scale up factor (value is converted to 2.10 format) */
-#define VI_Y_SCALE_SET_240_LINES(value)               (( 1024*(value) + 120 ) / 240)
-
-/**  Under VI_Y_SCALE   */
-/** @brief VI_Y_SCALE Register: set 1/vertical scale up factor (value is converted to 2.10 format) */
-#define VI_Y_SCALE_SET_288_LINES(value)               (( 1024*(value) + 144 ) / 288)
+#define VI_Y_SCALE_SET(from, to)            ((1024 * (from) + (to) / 2 ) / (to))
 
 /** @brief VI period for showing one NTSC and MPAL picture in ms. */
 #define VI_PERIOD_NTSC_MPAL                 ((float)1000/60)
@@ -227,8 +223,8 @@ static const vi_config_t vi_ntsc_p = {.regs = {
     VI_H_VIDEO_SET(108, 748),
     VI_V_VIDEO_SET(35, 515),
     VI_V_BURST_SET(14, 516),
-    VI_X_SCALE_SET(0),
-    VI_Y_SCALE_SET_240_LINES(0),
+    VI_X_SCALE_SET(0, 640),
+    VI_Y_SCALE_SET(0, 240),
 }};
 static const vi_config_t vi_pal_p =  {.regs = {
     0,
@@ -243,8 +239,8 @@ static const vi_config_t vi_pal_p =  {.regs = {
     VI_H_VIDEO_SET(128, 768),
     VI_V_VIDEO_SET(45, 621),
     VI_V_BURST_SET(9, 619),
-    VI_X_SCALE_SET(0),
-    VI_Y_SCALE_SET_288_LINES(0),
+    VI_X_SCALE_SET(0, 640),
+    VI_Y_SCALE_SET(0, 288),
 }};
 static const vi_config_t vi_mpal_p = {.regs = {
     0,
@@ -259,8 +255,8 @@ static const vi_config_t vi_mpal_p = {.regs = {
     VI_H_VIDEO_SET(108, 748),
     VI_V_VIDEO_SET(37, 511),
     VI_V_BURST_SET(14, 516),
-    VI_X_SCALE_SET(0),
-    VI_Y_SCALE_SET_240_LINES(0)
+    VI_X_SCALE_SET(0, 640),
+    VI_Y_SCALE_SET(0, 240)
 }};
 static const vi_config_t vi_ntsc_i = {.regs = {
     0,
@@ -275,8 +271,8 @@ static const vi_config_t vi_ntsc_i = {.regs = {
     VI_H_VIDEO_SET(108, 748),
     VI_V_VIDEO_SET(35, 515),
     VI_V_BURST_SET(14, 516),
-    VI_X_SCALE_SET(0),
-    VI_Y_SCALE_SET_240_LINES(0)
+    VI_X_SCALE_SET(0, 640),
+    VI_Y_SCALE_SET(0, 240)
 }};
 static const vi_config_t vi_pal_i = {.regs = {
     0,
@@ -291,8 +287,8 @@ static const vi_config_t vi_pal_i = {.regs = {
     VI_H_VIDEO_SET(128, 768),
     VI_V_VIDEO_SET(45, 621),
     VI_V_BURST_SET(9, 619),
-    VI_X_SCALE_SET(0),
-    VI_Y_SCALE_SET_288_LINES(0)
+    VI_X_SCALE_SET(0, 640),
+    VI_Y_SCALE_SET(0, 288)
 }};
 static const vi_config_t vi_mpal_i = {.regs = {
     0,
@@ -307,8 +303,8 @@ static const vi_config_t vi_mpal_i = {.regs = {
     VI_H_VIDEO_SET(108, 748),
     VI_V_VIDEO_SET(35, 509),
     VI_V_BURST_SET(11, 514),
-    VI_X_SCALE_SET(0),
-    VI_Y_SCALE_SET_240_LINES(0)
+    VI_X_SCALE_SET(0, 640),
+    VI_Y_SCALE_SET(0, 240)
 }};
 /** @} */
 

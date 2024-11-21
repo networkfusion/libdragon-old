@@ -40,6 +40,8 @@ static uint32_t __width;
 static uint32_t __height;
 /** @brief Currently active video interlace mode */
 static interlace_mode_t __interlace_mode = INTERLACE_OFF;
+/** @brief Current VI display borders */
+static vi_borders_t __borders;
 /** @brief Number of active buffers */
 static uint32_t __buffers = NUM_BUFFERS;
 /** @brief Pointer to uncached 16-bit aligned version of buffers */
@@ -366,6 +368,7 @@ void display_init( resolution_t res, bitdepth_t bit, uint32_t num_buffers, gamma
     __height = res.height;
     __bitdepth = ( bit == DEPTH_16_BPP ) ? 2 : 4;
     __interlace_mode = res.interlaced;
+    __borders = res.vi_borders;
 
     surfaces = malloc(sizeof(surface_t) * __buffers);
 
@@ -409,18 +412,16 @@ void display_init( resolution_t res, bitdepth_t bit, uint32_t num_buffers, gamma
         vi_write_safe(VI_V_VIDEO, (serrate) ? vi_ntsc_i.regs[VI_TO_INDEX(VI_V_VIDEO)] : vi_ntsc_p.regs[VI_TO_INDEX(VI_V_VIDEO)]);
     }
 
+    // Configure scaling and positioning, taking into account VI border settings.
+    vi_write_safe(VI_H_VIDEO, *VI_H_VIDEO + VI_H_VIDEO_SET(__borders.left, 0) - VI_H_VIDEO_SET(0, __borders.right));
+    vi_write_safe(VI_X_SCALE, VI_X_SCALE_SET(__width, 640 - __borders.left - __borders.right));
+    vi_write_safe(VI_V_VIDEO, *VI_V_VIDEO + VI_V_VIDEO_SET(__borders.up, 0) - VI_V_VIDEO_SET(0, __borders.down)); 
+    const uint32_t base_height = (__tv_type == TV_PAL) ? 288 : 240;
+    vi_write_safe(VI_Y_SCALE, VI_Y_SCALE_SET(__height, base_height - __borders.up));
+
     /* Configure other VI registers */
     vi_write_safe(VI_ORIGIN, PhysicalAddr(__safe_buffer[0]));
     vi_write_safe(VI_WIDTH, res.width);
-    vi_write_safe(VI_X_SCALE, VI_X_SCALE_SET(res.width));
-    if (__tv_type == TV_PAL)
-    {
-        vi_write_safe(VI_Y_SCALE, VI_Y_SCALE_SET_288_LINES(res.height));
-    }
-    else
-    {
-        vi_write_safe(VI_Y_SCALE, VI_Y_SCALE_SET_240_LINES(res.height));
-    }
     vi_write_safe(VI_CTRL, control);
 
     /* Calculate actual refresh rate for this configuration */
