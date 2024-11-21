@@ -417,7 +417,7 @@ void display_init( resolution_t res, bitdepth_t bit, uint32_t num_buffers, gamma
     vi_write_safe(VI_X_SCALE, VI_X_SCALE_SET(__width, 640 - __borders.left - __borders.right));
     vi_write_safe(VI_V_VIDEO, *VI_V_VIDEO + VI_V_VIDEO_SET(__borders.up, 0) - VI_V_VIDEO_SET(0, __borders.down)); 
     const uint32_t base_height = (__tv_type == TV_PAL) ? 288 : 240;
-    vi_write_safe(VI_Y_SCALE, VI_Y_SCALE_SET(__height, base_height - __borders.up));
+    vi_write_safe(VI_Y_SCALE, VI_Y_SCALE_SET(__height, base_height - ((__borders.up + __borders.down) / 2)));
 
     /* Configure other VI registers */
     vi_write_safe(VI_ORIGIN, PhysicalAddr(__safe_buffer[0]));
