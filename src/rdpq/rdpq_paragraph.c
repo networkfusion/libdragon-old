@@ -368,6 +368,7 @@ static bool __rdpq_paragraph_builder_update_bbox_width(int ix0, int ix1)
     if (UNLIKELY(builder.parms->width && builder.parms->align)) {
         float offset = builder.parms->width - (x1 + 1 - x0);
         if (builder.parms->align == ALIGN_CENTER) offset *= 0.5f;
+        offset -= x0;
 
         int16_t offset_fx = offset;
         for (rdpq_paragraph_char_t *ch = ch0; ch <= ch1; ++ch)
