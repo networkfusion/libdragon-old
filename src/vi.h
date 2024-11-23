@@ -315,6 +315,87 @@ static const vi_config_t vi_config_presets[2][3] = {
 };
 
 /**
+ * @brief Video Interface borders structure
+ *
+ * This structure defines how thick (in dots) should the borders around
+ * a framebuffer be.
+ * 
+ * The dots refer to the VI virtual display output (640x480, on both NTSC, PAL,
+ * and M-PAL), and thus reduce the actual display output, and even potentially
+ * modify the aspect ratio. The framebuffer will be scaled to fit under them.
+ * 
+ * For example, when displaying on CRT TVs, one can add borders around a
+ * framebuffer so that the whole image can be seen on the screen. 
+ * 
+ * If no borders are applied, the output will use the entire virtual dsplay
+ * output (640x480) for showing a framebuffer. This is useful for emulators,
+ * upscalers, and LCD TVs.
+ * 
+ * Notice that borders can also be *negative*: this obtains the effect of
+ * actually enlarging the output, growing from 640x480. Doing so will very
+ * likely create problems with most TV grabbers and upscalers, but it might
+ * work correctly on most CRTs (though the added pixels will surely be
+ * part of the overscan so not really visible). Horizontally, the maximum display
+ * output will probably be ~700-ish on CRTs, after which the sync will be lost.
+ * Vertically, any negative number will likely create immediate syncing problems,
+ */
+typedef struct vi_borders_s {
+    int16_t left, right, up, down;
+} vi_borders_t;
+
+/**
+ * @brief Calculate correct VI borders for a target aspect ratio.
+ * 
+ * This function calculates the appropriate VI borders to obtain the specified
+ * aspect ratio, and optionally adding a margin to make the picture CRT-safe.
+ * 
+ * The margin is expressed as a percentage relative to the virtual VI display
+ * output (640x480). A good default for this margin for most CRTs is
+ * #DEFAULT_CRT_MARGIN (5%).
+ * 
+ * For instance, to create a 16:9 resolution, you can do:
+ * 
+ * \code{.c}
+ *      vi_borders_t borders = vi_calc_borders(TV_NTSC, 16./9, false);
+ * \endcode
+ * 
+ * @param tv_type           TV type for which the calculation should be performed
+ * @param aspect_ratio      Target aspect ratio
+ * @param overscan_margin   Margin to add to compensate for TV overscan. Use 0
+ *                          to use full picture (eg: for emulators), and something
+ *                          like #DEFAULT_CRT_MARGIN to get a good CRT default.
+ * 
+ * @return vi_borders_t The requested border settings
+ */
+static inline vi_borders_t vi_calc_borders(int tv_type, float aspect_ratio, float overscan_margin)
+{
+    const int vi_width = 640;
+    const int vi_height = tv_type == TV_PAL ? 576 : 480;
+    const float vi_par = (float)vi_width / vi_height;
+    const float vi_dar = 4.0f / 3.0f;
+    float correction = (aspect_ratio / vi_dar) * vi_par;
+
+    vi_borders_t b;
+    b.left = b.right = vi_width * overscan_margin;
+    b.up = b.down = vi_height * overscan_margin;
+
+    int width = vi_width - b.left - b.right;
+    int height = vi_height - b.up - b.down;
+
+    if (correction > 1) {
+        int vborders = (int)(height - width / correction + 0.5f);
+        b.up += vborders / 2;
+        b.down += vborders / 2;
+    } else {
+        int hborders = (int)(width - height * correction + 0.5f);
+        b.left += hborders / 2;
+        b.right += hborders / 2;
+    }
+
+    return b;
+}
+
+/**
  * @brief Write a set of video registers to the VI
  *
  * @param[in] reg

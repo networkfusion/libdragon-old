@@ -368,7 +368,9 @@ void display_init( resolution_t res, bitdepth_t bit, uint32_t num_buffers, gamma
     __height = res.height;
     __bitdepth = ( bit == DEPTH_16_BPP ) ? 2 : 4;
     __interlace_mode = res.interlaced;
-    __borders = res.borders;
+
+    float aspect_ratio = res.aspect_ratio ? res.aspect_ratio : 4.0f / 3.0f;
+    __borders = vi_calc_borders(__tv_type, aspect_ratio, res.overscan_margin);
 
     surfaces = malloc(sizeof(surface_t) * __buffers);
 

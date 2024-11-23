@@ -55,35 +55,6 @@ typedef enum {
 } interlace_mode_t;
 
 /**
- * @brief Video Interface borders structure
- *
- * This structure defines how thick (in dots) should the borders around
- * a framebuffer be.
- * 
- * The dots refer to the VI virtual display output (640x480, on both NTSC, PAL,
- * and M-PAL), and thus reduce the actual display output, and even potentially
- * modify the aspect ratio. The framebuffer will be scaled to fit under them.
- * 
- * For example, when displaying on CRT TVs, one can add borders around a
- * framebuffer so that the whole image can be seen on the screen. 
- * 
- * If no borders are applied, the output will use the entire virtual dsplay
- * output (640x480) for showing a framebuffer. This is useful for emulators,
- * upscalers, and LCD TVs.
- * 
- * Notice that borders can also be *negative*: this obtains the effect of
- * actually enlarging the output, growing from 640x480. Doing so will very
- * likely create problems with most TV grabbers and upscalers, but it might
- * work correctly on most CRTs (though the added pixels will surely be
- * part of the overscan so not really visible). Horizontally, the maximum display
- * output will probably be ~700-ish on CRTs, after which the sync will be lost.
- * Vertically, any negative number will likely create immediate syncing problems,
- */
-typedef struct vi_borders_s {
-    int16_t left, right, up, down;
-} vi_borders_t;
-
-/**
  * @brief Video resolution structure
  *
  * You can either use one of the pre-defined constants
@@ -151,112 +122,58 @@ typedef struct {
      * Setting this variable to true on NTSC/MPAL will have no effect.
      */
     bool pal60;
-    /**
-     * @brief Borders to add to the picture
+    /** 
+     * @brief Configure the desired aspect ratio of the output display picture.
      * 
-     * This setting will reduce the display output by adidng additional borders
-     * around your display; this can be useful to cover the overscan margin of
-     * some CRT TVs to help ensure your entire frame is visible on the screen,
-     * and optionally to modify the display aspect ratio.
+     * By default (when this value is 0), the framebuffer will be displayed as
+     * a 4:3 picture, irrespective of its width and height. By tweaking this
+     * value, the image will instead be letterboxed (with black bars) to
+     * achieve the requested aspect ratio.
      * 
-     * Framebuffer resolution is not affected by this. Due to the way VI scaling works,
-     * it is advisable to not use the #FILTERS_DISABLED option for your display
-     * if borders are enabled because no bilinear resampling means VI is likely
-     * to output unevenly thick columns of pixels or skip some scanlines.
-     * 
-     * You can use #VI_BORDERS_NONE (default) to disable borders, or
-     * #VI_BORDERS_CRT to enable a safe overscan compensation for most TVs.
-     * 
-     * To do more advanced tweaking, including generating a display output
-     * with a specific aspect ratio, use #vi_calc_borders.
+     * For instance, to display the framebuffer as letterboxed 16:9, specify
+     * `16.0f / 9.0f` (aka `1.777777777f`) here.
      */
-    vi_borders_t borders;
+    float aspect_ratio;
+    /**
+     * @brief Add a margin to the display output to compensate for the TV overscan.
+     * 
+     * Leave 0 for emulators, upscaler or LCD TVs. Use #DEFAULT_CRT_MARGIN for
+     * adding some margin that will allow the picture to be fully visible on
+     * most TV CRTs.
+     * 
+     * By default (when this value is 0), the framebuffer will be displayed at
+     * the maximum extents allowed by VI (not a physical maximum, but a good
+     * maximum that doesn't compromise compatibility of the video signal).
+     * This picture will be good for emulators, upscalers, or LCD TVs.
+     * 
+     * On TV CRTs, instead, part of the picture will be displayed by the TV
+     * overscan. To compensate for this, you can reduce the picture size by this
+     * specified amount (expressed in percentage of the original picture).
+     * #DEFAULT_CRT_MARGIN (which is 0.05, aka 5%) is the suggested value you can
+     * use for this field
+     */
+    float overscan_margin;
 } resolution_t;
 
 ///@cond
 #define const static const /* fool doxygen to document these static members */
 ///@endcond
 
-/**
- * @brief Request no borders from VI.
- * 
- * No VI borders will be defined, so the virtual display output will be
- * 640x480, 4:3. Useful when outputing for emulators, upscalers, or LCD TVs.
- */
-const vi_borders_t VI_BORDERS_NONE = {0, 0, 0, 0};
-
-/**
- * @brief Request CRT overscan compensation
- * 
- * VI border preset that leaves a 5% margin on each side. Useful when outputing
- * for CRT TVs in order to account for possible overscan to ensure the frame is
- * visible on the screen.
- * 
- * The display output will still be exactly 4:3.
- */
-const vi_borders_t VI_BORDERS_CRT = {32, 32, 24, 24};
-
 /** Good default for a safe CRT overscan margin (5%) */
 #define DEFAULT_CRT_MARGIN      0.05f
 
-/**
- * @brief Calculate correct VI borders for a target aspect ratio.
- * 
- * This function calculates the appropriate VI borders to obtain the specified
- * aspect ratio, and optionally adding a margin to make the picture CRT-safe.
- * 
- * The margin is expressed as a percentage relative to the virtual VI display
- * output (640x480). A good default for this margin for most CRTs is
- * #DEFAULT_CRT_MARGIN (5%).
- * 
- * For instance, to create a 16:9 resolution, you can do:
- * 
- * \code{.c}
- *      vi_borders_t borders = vi_calc_borders(16./9, false);
- * \endcode
- * 
- * @param aspect_ratio      Target aspect ratio
- * @param overscan_margin   Margin to add to compensate for TV overscan. Use 0
- *                          to use full picture (eg: for emulators), and something
- *                          like #DEFAULT_CRT_MARGIN to get a good CRT default.
- * 
- * @return vi_borders_t The requested border settings
- */
-static inline vi_borders_t vi_calc_borders(float aspect_ratio, float overscan_margin)
-{
-    vi_borders_t b;
-    b.left = b.right = 640 * overscan_margin;
-    b.up = b.down = 480 * overscan_margin;
-
-    int width = 640 - b.left - b.right;
-    int height = 480 - b.up - b.down;
-
-    if (aspect_ratio > 4/3.f) {
-        int vborders = (int)(height - width / aspect_ratio + 0.5f);
-        b.up += vborders / 2;
-        b.down += vborders / 2;
-    } else {
-        int hborders = (int)(width - height * aspect_ratio + 0.5f);
-        b.left += hborders / 2;
-        b.right += hborders / 2;
-    }
-
-    return b;
-}
-
-
 /** @brief 256x240 mode, stretched to 4:3, no borders */
-const resolution_t RESOLUTION_256x240 = {.width = 256, .height = 240, .interlaced = INTERLACE_OFF, .borders = VI_BORDERS_NONE};
+const resolution_t RESOLUTION_256x240 = {.width = 256, .height = 240, .interlaced = INTERLACE_OFF};
 /** @brief 320x240 mode, no borders */
-const resolution_t RESOLUTION_320x240 = {.width = 320, .height = 240, .interlaced = INTERLACE_OFF, .borders = VI_BORDERS_NONE};
+const resolution_t RESOLUTION_320x240 = {.width = 320, .height = 240, .interlaced = INTERLACE_OFF};
 /** @brief 512x240 mode, stretched to 4:3, no borders */
-const resolution_t RESOLUTION_512x240 = {.width = 512, .height = 240, .interlaced = INTERLACE_OFF, .borders = VI_BORDERS_NONE};
+const resolution_t RESOLUTION_512x240 = {.width = 512, .height = 240, .interlaced = INTERLACE_OFF};
 /** @brief 640x240 mode, stretched to 4:3, no borders */
-const resolution_t RESOLUTION_640x240 = {.width = 640, .height = 240, .interlaced = INTERLACE_OFF, .borders = VI_BORDERS_NONE};
+const resolution_t RESOLUTION_640x240 = {.width = 640, .height = 240, .interlaced = INTERLACE_OFF};
 /** @brief 512x480 mode, interlaced, stretched to 4:3, no borders */
-const resolution_t RESOLUTION_512x480 = {.width = 512, .height = 480, .interlaced = INTERLACE_HALF, .borders = VI_BORDERS_NONE};
+const resolution_t RESOLUTION_512x480 = {.width = 512, .height = 480, .interlaced = INTERLACE_HALF};
 /** @brief 640x480 mode, interlaced, no borders */
-const resolution_t RESOLUTION_640x480 = {.width = 640, .height = 480, .interlaced = INTERLACE_HALF, .borders = VI_BORDERS_NONE};
+const resolution_t RESOLUTION_640x480 = {.width = 640, .height = 480, .interlaced = INTERLACE_HALF};
 
 #undef const
 
