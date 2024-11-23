@@ -368,7 +368,7 @@ void display_init( resolution_t res, bitdepth_t bit, uint32_t num_buffers, gamma
     __height = res.height;
     __bitdepth = ( bit == DEPTH_16_BPP ) ? 2 : 4;
     __interlace_mode = res.interlaced;
-    __borders = res.vi_borders;
+    __borders = res.borders;
 
     surfaces = malloc(sizeof(surface_t) * __buffers);
 
