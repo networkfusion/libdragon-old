@@ -2,6 +2,76 @@
  * @file vi.h
  * @brief Video Interface Subsystem
  * @ingroup display
+ * 
+ * This module offers a low-level interface to VI programming. Most applications
+ * should use display.h, which sits on top of vi.h, and offers a higher level
+ * interface, plus automatic memory management of multiple framebuffers,
+ * FPS utilities, and much more.
+ * 
+ * ## Framebuffer resizing and video display size
+ * 
+ * VI has a powerful resampling engine: the framebuffer is not displayed as-is
+ * on TV, but it is actually resampled (scaled, stretched), optionally with
+ * bilinear filtering. This is a very powerful hardware feature that is a bit
+ * complicated to configure, so an effort was made to expose an intuitive API
+ * to programmers.
+ *
+ * By default, this module configures the VI to resample an arbitrary framebuffer
+ * picture into a virtual 640x480 display output with 4:3 aspect ratio (on NTSC
+ * and MPAL), or a virtual 640x576 display output though with the same 4:3
+ * aspect ratio on PAL. This is done to achieve TV type independence: since
+ * both resolution share the same aspect ratio on their respective TV standards
+ * (given that dots are square on NTSC but they are not on PAL), it means
+ * that the framebuffer will look the same on all TVs; on PAL, you will be
+ * trading additional vertical resolution (assuming the framebuffer is big
+ * enough to have that detail). 
+ * 
+ * This also means that games don't have to do anything special to handle NTSC
+ * vs PAL (besides maybe accounting for the different refresh rate), which is
+ * an important goal.
+ * 
+ * In reality, TVs didn't have a 480-lines vertical resolution so the actual
+ * output depends on whether you request interlaced display or not:
+ * 
+ *  * In case of non interlaced display, the actual resolution is 640x240, but
+ *    since dots will be configured to be twice as big vertically, the aspect
+ *    ratio will be 4:3 as-if the image was 640x480 (with duplicated scanlines)
+ *  * In case of interlaced display, you do get to display 480 scanlines, by
+ *    alternating two slightly-shifted 640x240 pictures.
+ * 
+ * As an example, if you configure a framebuffer resolution like 512x320, with
+ * interlacing turned off, what happens is that the image gets scaled into
+ * 640x240, so horizontally some pixels will be duplicated to enlarge the
+ * resolution to 640, but vertically some scanlines will be dropped. The
+ * output display aspect ratio will still be 4:3, which is not the source aspect
+ * ratio of the framebuffer (512 / 320 = 1.6666 = 16:10), so the image will
+ * appear squished, unless obviously this was accounted for while drawing to
+ * the framebuffer.
+ * 
+ * While resampling the framebuffer into the display output, the VI can use either
+ * bilinear filtering or simple nearest sampling (duplicating or dropping pixels).
+ * See #filter_options_t for more information on configuring
+ * the VI image filters.
+ * 
+ * The 640x480 virtual display output can be fully viewed on emulators and on
+ * modern screens (via grabbers, converters, etc.). When displaying on old
+ * CRTs though, part of the display will be hidden because of the overscan.
+ * To account for that, it is possible to reduce the 640x480 display output
+ * by adding black borders. For instance, if you specify 12 dots of borders
+ * on all the four edges, you will get a 616x456 display output, plus
+ * the requested 12 dots of borders on all sides; the actual display output
+ * will thus be smaller, and possibly get fully out of overscan. The value
+ * #DEFAULT_CRT_MARGIN is a good default you can use for overscan compensation on
+ * most CRT TVs.
+ * 
+ * Notice that adding borders also affect the aspect ratio of the display output;
+ * for instance, in the above example, the 616x456 display output is not
+ * exactly 4:3 anymore, but more like 4.05:3. By carefully calculating borders,
+ * thus, it is possible to obtain specific display outputs with custom aspect
+ * ratios (eg: 16:9).
+ * 
+ * To help calculating the borders by taking both potential goals into account
+ * (overscan compensation and aspect ratio changes), you can use #vi_calc_borders.
  */
 #ifndef __LIBDRAGON_VI_H
 #define __LIBDRAGON_VI_H

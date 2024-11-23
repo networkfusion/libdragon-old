@@ -57,52 +57,13 @@ typedef enum {
 /**
  * @brief Video resolution structure
  *
- * You can either use one of the pre-defined constants
- * (such as #RESOLUTION_320x240) or define a custom resolution.
+ * This structure allows to configure the video resolution, which includes both
+ * the framebuffer size and some parameters of how the framebuffer is displayed
+ * on the screen (aspect ratio, TV overscan margins, etc.).
  * 
- * By default, the VI will be configured to resample the specified framebuffer
- * picture into a virtual 640x480 display output with 4:3 aspect ratio (on both
- * PAL, NTSC and MPAL). In reality, TVs didn't have that vertical resolution
- * so the actual output depends on whether you request interlaced display or not:
- * 
- *  * In case of non interlaced display, the actual resolution is 640x240, but
- *    since dots will be configured to be twice as big vertically, the aspect
- *    ratio will be 4:3 as-if the image was 640x480 (with duplicated scanlines)
- *  * In case of interlaced display, you do get to display 480 scanlines, by
- *    alternating two slightly-shifted 640x240 pictures.
- * 
- * As an example, if you specify a resolution like 512x320, with interlacing
- * turned off, what happens is that the image gets scaled into 640x240, so
- * horizontally some pixels will be duplicated to enlarge the resolution to 640,
- * but vertically some scanlines will be dropped. The output display aspect ratio
- * will still be 4:3, which is not the source aspect ratio of the framebuffer
- * (512 / 320 = 1.6666 = 16:10), so the image will appear squished, unless
- * obviously this was accounted for while drawing to the framebuffer.
- * 
- * While resampling the framebuffer into the display output, the VI can use either
- * bilinear filtering or simple nearest sampling (duplicating or dropping pixels).
- * See #filter_options_t for more information on configuring
- * the VI image filters.
- * 
- * The 640x480 virtual display output can be fully viewed on emulators and on
- * modern screens (via grabbers, converters, etc.). When displaying on old
- * CRTs though, part of the display will be hidden because of the overscan.
- * To account for that, it is possible to reduce the 640x480 display output
- * by adding black borders. For instance, if you specify 12 dots of borders
- * on all the four edges, you will get a 616x456 display output, plus
- * the requested 12 dots of borders on all sides; the actual display output
- * will thus be smaller, and possibly get fully out of overscan. The value
- * #VI_BORDERS_CRT is a good default you can use for overscan compensation on
- * most CRT TVs.
- * 
- * Notice that adding borders also affect the aspect ratio of the display output;
- * for instance, in the above example, the 616x456 display output is not
- * exactly 4:3 anymore, but more like 4.05:3. By carefully calculating borders,
- * thus, it is possible to obtain specific display outputs with custom aspect
- * ratios (eg: 16:9).
- * 
- * To help calculating the borders by taking both potential goals into account
- * (overscan compensation and aspect ratio changes), you can use #vi_calc_borders.
+ * Most users should just use one of the pre-defined constants (such as 
+ * #RESOLUTION_320x240), but it is possible to configure custom resolutions
+ * by manually filling fields in this structure.
  */
 typedef struct {
     /** @brief Framebuffer width (must be between 2 and 800) */
@@ -111,17 +72,6 @@ typedef struct {
     int32_t height;
     /** @brief Interlace mode */
     interlace_mode_t interlaced;
-    /** 
-     * @brief Use PAL60 mode if on PAL
-     * 
-     * PAL60 is a PAL video setting with NTSC-like vertical timing, that allows
-     * to refresh 60 frames per second instead of the usual 50. This is compatible
-     * with most PAL CRTs, but sometimes it creates issues with some modern
-     * converters / upscalers. 
-     * 
-     * Setting this variable to true on NTSC/MPAL will have no effect.
-     */
-    bool pal60;
     /** 
      * @brief Configure the desired aspect ratio of the output display picture.
      * 
@@ -153,6 +103,17 @@ typedef struct {
      * use for this field
      */
     float overscan_margin;
+    /** 
+     * @brief Use PAL60 mode if on PAL
+     * 
+     * PAL60 is a PAL video setting with NTSC-like vertical timing, that allows
+     * to refresh 60 frames per second instead of the usual 50. This is compatible
+     * with most PAL CRTs, but sometimes it creates issues with some modern
+     * converters / upscalers. 
+     * 
+     * Setting this variable to true on NTSC/MPAL will have no effect.
+     */
+    bool pal60;
 } resolution_t;
 
 ///@cond
