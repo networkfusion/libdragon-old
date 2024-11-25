@@ -270,11 +270,6 @@ typedef struct vi_config_s{
 /** @brief VI_Y_SCALE Register: set 1/vertical scale up factor (value is converted to 2.10 format) */
 #define VI_Y_SCALE_SET(from, to)            ((1024 * (from) + (to) / 2 ) / (to))
 
-/** @brief VI period for showing one NTSC and MPAL picture in ms. */
-#define VI_PERIOD_NTSC_MPAL                 ((float)1000/60)
-/** @brief VI period for showing one PAL picture in ms. */
-#define VI_PERIOD_PAL                       ((float)1000/50)
-
 /**
  * @name Video Mode Register Presets
  * @brief Presets to begin with when setting a particular video mode

@@ -197,11 +197,8 @@ static void update_fps(bool newframe)
 static void __display_callback()
 {
     // If a reset has occured and its the last VI interrupt before RESET_TIME_LENGTH grace period, stop all work and exit
-    uint32_t next_call = __tv_type == TV_PAL? 
-        TICKS_FROM_MS(VI_PERIOD_PAL) : 
-        TICKS_FROM_MS(VI_PERIOD_NTSC_MPAL);
-
-    if(exception_reset_time() + next_call >= RESET_TIME_LENGTH) die();
+    uint32_t next_time = TICKS_FROM_MS(refresh_period*1000);
+    if(exception_reset_time() + next_time >= RESET_TIME_LENGTH) die();
 
     /* Least significant bit of the current line register indicates
        if the currently displayed field is odd or even. */
