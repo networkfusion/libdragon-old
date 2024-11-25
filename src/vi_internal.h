@@ -73,8 +73,8 @@
  * To help calculating the borders by taking both potential goals into account
  * (overscan compensation and aspect ratio changes), you can use #vi_calc_borders.
  */
-#ifndef __LIBDRAGON_VI_H
-#define __LIBDRAGON_VI_H
+#ifndef __LIBDRAGON_VI_INTERNAL_H
+#define __LIBDRAGON_VI_INTERNAL_H
 
 #include <stdint.h>
 #include <stdbool.h>

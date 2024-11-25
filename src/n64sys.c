@@ -11,7 +11,7 @@
 #include "n64sys.h"
 #include "regsinternal.h"
 #include "interrupt.h"
-#include "vi.h"
+#include "vi_internal.h"
 #include "rsp.h"
 #include "rdp.h"
 #include "utils.h"
