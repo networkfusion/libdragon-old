@@ -134,12 +134,6 @@ bool is_memory_expanded()
     return get_memory_size() >= 0x7C0000;
 }
 
-
-tv_type_t get_tv_type() 
-{
-    return __boot_tvtype;
-}
-
 reset_type_t sys_reset_type(void)
 {
     return __boot_resettype;
@@ -386,3 +380,5 @@ extern inline uint16_t mem_read16(uint64_t vaddr);
 extern inline uint32_t mem_read32(uint64_t vaddr);
 extern inline uint64_t mem_read64(uint64_t vaddr);
 extern inline bool sys_bbplayer(void);
+extern inline tv_type_t get_tv_type(void);
+

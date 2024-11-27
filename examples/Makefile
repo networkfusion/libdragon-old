@@ -25,6 +25,7 @@ EXAMPLES += spriteanim
 EXAMPLES += test
 EXAMPLES += timers
 EXAMPLES += videoplayer
+EXAMPLES += vifx
 EXAMPLES += vrutest
 EXAMPLES += vtest
 
