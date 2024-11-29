@@ -10,6 +10,7 @@
 #include <stdbool.h>
 #include <assert.h>
 
+/** @brief Preset of settings for a certain TV type */
 typedef struct vi_preset_s {
     int clock;                  ///< Pixel clock in Hz
     uint32_t vi_h_total;        ///< Total horizontal length (in 1/4th pixels)
@@ -67,12 +68,13 @@ static const vi_preset_t vi_presets[3] = {
     },
 };
 
+/** @brief Current VI state */
 typedef struct vi_state_s {
-    vi_config_t cfg;
-    const vi_preset_t *preset;
-    uint16_t cfg_pending;
-    volatile int cfg_refcount;
-    bool pending_blank;
+    vi_config_t cfg;                ///< Current VI configuration
+    const vi_preset_t *preset;      ///< Active TV preset
+    uint16_t cfg_pending;           ///< Pending register changes (1 bit per each VI register)
+    volatile int cfg_refcount;      ///< Number of active write transactions
+    bool pending_blank;             ///< True if blanking was requested
 } vi_state_t;
 
 static vi_state_t vi;

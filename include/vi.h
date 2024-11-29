@@ -443,10 +443,9 @@ vi_borders_t vi_calc_borders2(float aspect_ratio, float overscan_margin);
  * will just crop it.
  * 
  * If you want the top and left border to also crop the picture, you must 
- * call #vi_set_xoffset and #vi_set_yoffset passing the
+ * adjust the framebuffer pointer (#vi_set_origin) accordingly.
  * 
- * @param b 
- * @param rescale 
+ * @param b                 Borders to apply
  */
 void vi_set_borders(vi_borders_t b);
 
@@ -501,10 +500,11 @@ void vi_scroll(int deltax, int deltay);
  * If the specified surface is NULL, the VI will be turned off altogether,
  * and will stop issuing any video signal.
  * 
- * @param surf      Surface to show
+ * @param fb      Surface to show
  */
 void vi_show(surface_t *fb);
 
+/** @} */
 
 #ifdef __cplusplus
 }
