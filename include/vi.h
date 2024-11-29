@@ -105,11 +105,11 @@ typedef struct surface_s surface_t;
 #define VI_BURST          (&VI_REGISTERS[5])
 /** @brief VI Index register of total visible and non-visible lines. 
  * This should match either NTSC (non-interlaced: 0x20D, interlaced: 0x20C) or PAL (non-interlaced: 0x271, interlaced: 0x270) */
-#define VI_V_SYNC         (&VI_REGISTERS[6])
+#define VI_V_TOTAL        (&VI_REGISTERS[6])
 /** @brief VI Index register of total width of a line */
-#define VI_H_SYNC         (&VI_REGISTERS[7])
+#define VI_H_TOTAL        (&VI_REGISTERS[7])
 /** @brief VI Index register of an alternate scanline length for one scanline during vsync. */
-#define VI_H_SYNC_LEAP    (&VI_REGISTERS[8])
+#define VI_H_TOTAL_LEAP   (&VI_REGISTERS[8])
 /** @brief VI Index register of start/end of the active video image, in screen pixels */
 #define VI_H_VIDEO        (&VI_REGISTERS[9])
 /** @brief VI Index register of start/end of the active video image, in screen half-lines. */

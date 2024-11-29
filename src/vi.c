@@ -10,73 +10,66 @@
 #include <stdbool.h>
 #include <assert.h>
 
+typedef struct vi_preset_s {
+    int clock;                  ///< Pixel clock in Hz
+    uint32_t vi_h_total;        ///< Total horizontal length (in 1/4th pixels)
+    uint32_t vi_h_total_leap;   ///< Leap setting (alternate scanline lengths)
+    uint32_t vi_v_total;        ///< Total vertical length (in scanlines)
+    uint32_t vi_burst;          ///< Horizontal Burst settings
+    uint32_t vi_v_burst;        ///< Vertical burst settings
+    struct {
+        int x0;                 ///< Default active area x0
+        int y0;                 ///< Default active area y0
+        int width;              ///< Default active area width
+        int height;             ///< Default active area height (in half-lines)
+    } display;                  ///< Default active area
+} vi_preset_t;
+
 /**
- * @name Video Mode Register Presets
- * @brief Presets to begin with when setting a particular video mode
- * @{
+ * @brief Presets to begin with when setting a particular TV type
  */
-static const vi_config_t vi_ntsc = {.regs = {
-    0,
-    VI_ORIGIN_SET(0),
-    VI_WIDTH_SET(0),
-    VI_V_INTR_SET(2),
-    0,
-    VI_BURST_NTSC,
-    VI_V_SYNC_SET(525),
-    VI_H_SYNC_SET(0b00000, 3093),
-    VI_H_SYNC_LEAP_SET(3093, 3093),
-    VI_H_VIDEO_SET(108, 748),
-    VI_V_VIDEO_SET(35, 515),
-    VI_V_BURST_SET(14, 516),
-    VI_X_SCALE_SET(0, 640),
-    VI_Y_SCALE_SET(0, 240),
-}};
-static const vi_config_t vi_pal =  {.regs = {
-    0,
-    VI_ORIGIN_SET(0),
-    VI_WIDTH_SET(0),
-    VI_V_INTR_SET(2),
-    0,
-    VI_BURST_PAL,
-    VI_V_SYNC_SET(625),
-    VI_H_SYNC_SET(0b10101, 3177),
-    VI_H_SYNC_LEAP_SET(3183, 3182),
-    VI_H_VIDEO_SET(128, 768),
-    VI_V_VIDEO_SET(45, 621),
-    VI_V_BURST_SET(9, 619),
-    VI_X_SCALE_SET(0, 640),
-    VI_Y_SCALE_SET(0, 288),
-}};
-static const vi_config_t vi_mpal = {.regs = {
-    0,
-    VI_ORIGIN_SET(0),
-    VI_WIDTH_SET(0),
-    VI_V_INTR_SET(2),
-    0,
-    VI_BURST_MPAL,
-    VI_V_SYNC_SET(525),
-    VI_H_SYNC_SET(0b00100, 3089),
-    VI_H_SYNC_LEAP_SET(3097, 3098),
-    VI_H_VIDEO_SET(108, 748),
-    VI_V_VIDEO_SET(37, 511),
-    VI_V_BURST_SET(14, 516),
-    VI_X_SCALE_SET(0, 640),
-    VI_Y_SCALE_SET(0, 240)
-}};
-/** @} */
-
-/** @brief Register initial value array */
-static const vi_config_t vi_cfg_presets[3] = {
-    vi_pal, vi_ntsc, vi_mpal,
-};
-
-static int display_bounds[1][4] = {
-    { 96, 794, 2, 625 }, // PAL bounds (TODO: found for others)
+static const vi_preset_t vi_presets[3] = {
+    [TV_NTSC] = {
+        .clock = 48681818,
+        .vi_h_total = VI_H_TOTAL_SET(0b00000, 3093),
+        .vi_h_total_leap = VI_H_TOTAL_LEAP_SET(3093, 3093),
+        .vi_v_total = VI_V_TOTAL_SET(525),
+        .vi_burst = VI_BURST_NTSC,
+        .vi_v_burst = VI_V_BURST_SET(14, 516),
+        .display = {
+            .x0 = 108, .y0 = 35,
+            .width = 640, .height = 480,
+        },
+    },
+    [TV_PAL] = {
+        .clock = 49656530,
+        .vi_h_total = VI_H_TOTAL_SET(0b10101, 3177),
+        .vi_h_total_leap = VI_H_TOTAL_LEAP_SET(3183, 3182),
+        .vi_v_total = VI_V_TOTAL_SET(625),
+        .vi_burst = VI_BURST_PAL,
+        .vi_v_burst = VI_V_BURST_SET(9, 619),
+        .display = {
+            .x0 = 128, .y0 = 45,
+            .width = 640, .height = 576,
+        },
+    },
+    [TV_MPAL] = {
+        .clock = 48628322,
+        .vi_h_total = VI_H_TOTAL_SET(0b00100, 3089),
+        .vi_h_total_leap = VI_H_TOTAL_LEAP_SET(3097, 3098),
+        .vi_v_total = VI_V_TOTAL_SET(525),
+        .vi_burst = VI_BURST_MPAL,
+        .vi_v_burst = VI_V_BURST_SET(14, 516),
+        .display = {
+            .x0 = 108, .y0 = 35,
+            .width = 640, .height = 480,
+        },
+    },
 };
 
 typedef struct vi_state_s {
     vi_config_t cfg;
-    const vi_config_t *preset;
+    const vi_preset_t *preset;
     uint16_t cfg_pending;
     volatile int cfg_refcount;
     bool pending_blank;
@@ -197,7 +190,6 @@ void vi_set_xscale(float fb_width)
 void vi_set_yscale(float fb_height)
 {
     int vi_height = vi_get_display_height() / 2;
-    debugf("VI height: %d %f\n", vi_height, fb_height);
     vi_write_masked(VI_Y_SCALE, 0xFFFF, VI_Y_SCALE_SET(fb_height, vi_height));
 }
 
@@ -228,35 +220,30 @@ void vi_set_interlaced(bool interlaced)
 {
     vi_write_begin();
     vi_write_masked(VI_CTRL, VI_CTRL_SERRATE, interlaced ? VI_CTRL_SERRATE : 0);
-    vi_write_masked(VI_V_SYNC, 0x1, interlaced ? 0 : 1);
+    vi_write_masked(VI_V_TOTAL, 0x1, interlaced ? 0 : 1);
     vi_write_end();
 }
 
 float vi_get_refresh_rate(void)
 {
-    int clock;
-    switch (get_tv_type()) {
-        case TV_PAL:    clock = 49656530; break;
-        case TV_MPAL:   clock = 48628322; break;
-        default:        clock = 48681818; break;
-    }
-    uint32_t HSYNC = vi_read(VI_H_SYNC);
-    uint32_t VSYNC = vi_read(VI_V_SYNC);
-    uint32_t HSYNC_LEAP = vi_read(VI_H_SYNC_LEAP);
+    int clock = vi.preset->clock;
+    uint32_t HTOTAL = vi_read(VI_H_TOTAL);
+    uint32_t VTOTAL = vi_read(VI_V_TOTAL);
+    uint32_t HTOTAL_LEAP = vi_read(VI_H_TOTAL_LEAP);
 
-    int h_sync = (HSYNC & 0xFFF) + 1;
-    int v_sync = (VSYNC & 0x3FF) + 1;
-    int h_sync_leap_b = (HSYNC_LEAP >>  0) & 0xFFF;
-    int h_sync_leap_a = (HSYNC_LEAP >> 16) & 0xFFF;
+    int h_total = (HTOTAL & 0xFFF) + 1;
+    int v_total = (VTOTAL & 0x3FF) + 1;
+    int h_total_leap_b = (HTOTAL_LEAP >>  0) & 0xFFF;
+    int h_total_leap_a = (HTOTAL_LEAP >> 16) & 0xFFF;
     int leap_bitcount = 0;
     int mask = 1<<16;
     for (int i=0; i<5; i++) {
-        if (HSYNC & mask) leap_bitcount++;
+        if (HTOTAL & mask) leap_bitcount++;
         mask <<= 1;
     }
-    int h_sync_leap_avg = (h_sync_leap_a * leap_bitcount + h_sync_leap_b * (5 - leap_bitcount)) / 5;
+    int h_total_leap_avg = (h_total_leap_a * leap_bitcount + h_total_leap_b * (5 - leap_bitcount)) / 5;
 
-    return (float)clock / ((h_sync * (v_sync - 2) / 2 + h_sync_leap_avg));
+    return (float)clock / ((h_total * (v_total - 2) / 2 + h_total_leap_avg));
 }
 
 static void vi_get_display_area(int *x0, int *y0, int *x1, int *y1)
@@ -268,20 +255,55 @@ static void vi_get_display_area(int *x0, int *y0, int *x1, int *y1)
     *y0 = v_video >> 16; *y1 = v_video & 0xFFFF;
 }
 
+static void vi_set_display_area(int x0, int y0, int x1, int y1)
+{
+    vi_write_begin();
+    vi_write(VI_H_VIDEO, VI_H_VIDEO_SET(x0, x1));
+    vi_write(VI_V_VIDEO, VI_V_VIDEO_SET(y0, y1));
+    vi_write_end();
+    debugf("VI active area: %d-%d %d-%d\n", x0, x1, y0, y1);
+}
+
+static void vi_get_display_area_limits(int *x0, int *y0, int *x1, int *y1)
+{
+    uint32_t H_TOTAL = vi_read(VI_H_TOTAL);
+    uint32_t V_TOTAL = vi_read(VI_V_TOTAL);
+    uint32_t BURST = vi_read(VI_BURST);
+    int burst_start = (BURST >> 20) & 0x3FF;
+    int vsync_height = (BURST >> 16) & 0xF;
+    int burst_width = (BURST >> 8) & 0xFF;
+    int htotal = ((H_TOTAL & 0xFFF) + 1) / 4;
+    int vtotal = (V_TOTAL & 0x3FF) + 1;
+
+    // On the left, the display area is bound by the color burst. If the display
+    // area is configured to begin before the color burst is finished, it will
+    // interrupt it, causing chrominance artifacts.
+    *x0 = burst_start + burst_width;
+
+    // On the top, the display area is bound by the initial vsync period. Notice
+    // that the vertical color burst enable/disable 
+    *y0 = vsync_height;
+
+    // On the right/bottom, the display area is bound by the total picture length
+    *x1 = htotal;
+    *y1 = vtotal;
+}
+
 void vi_set_borders(vi_borders_t b)
 {
-    uint32_t h_video = vi.preset->regs[VI_TO_INDEX(VI_H_VIDEO)];
-    uint32_t v_video = vi.preset->regs[VI_TO_INDEX(VI_V_VIDEO)];
-
-    int x0 = h_video >> 16, x1 = h_video & 0xFFFF;
-    int y0 = v_video >> 16, y1 = v_video & 0xFFFF;
+    int x0 = vi.preset->display.x0, x1 = x0 + vi.preset->display.width;
+    int y0 = vi.preset->display.y0, y1 = y0 + vi.preset->display.height;
 
     x0 += b.left;
     x1 -= b.right;
     y0 += b.up;
     y1 -= b.down;
 
-    int *bounds = display_bounds[0];
+    int bounds[4];
+    vi_get_display_area_limits(&bounds[0], &bounds[2], &bounds[1], &bounds[3]);
+
+    debugf("VI limits: %d-%d %d-%d\n", bounds[0], bounds[1], bounds[2], bounds[3]);
+    debugf("Requested: %d-%d %d-%d\n", x0, x1, y0, y1);
 
     if (x0 > bounds[1] || x1 < bounds[0] || y0 > bounds[3] || y1 < bounds[2]) {
         // If the image is totally out of bounds, just force zero display are
@@ -307,29 +329,26 @@ void vi_set_borders(vi_borders_t b)
         }
     }
 
-    vi_write_begin();
-    vi_write(VI_H_VIDEO, VI_H_VIDEO_SET(x0, x1));
-    vi_write(VI_V_VIDEO, VI_V_VIDEO_SET(y0, y1));
-    vi_write_end();
-
-    vi_get_display_area(&x0, &y0, &x1, &y1);
-    debugf("VI active area: %d-%d %d-%d\n", x0, x1, y0, y1);
+    vi_set_display_area(x0, y0, x1, y1);
 }
 
 vi_borders_t vi_get_borders(void)
 {
+    int x0, y0, x1, y1;
+    vi_get_display_area(&x0, &y0, &x1, &y1);
+
     vi_borders_t b;
-    b.left  = +((vi_read(VI_H_VIDEO) >> 16)    - (vi.preset->regs[VI_TO_INDEX(VI_H_VIDEO)] >> 16));
-    b.right = -((vi_read(VI_H_VIDEO) & 0xFFFF) - (vi.preset->regs[VI_TO_INDEX(VI_H_VIDEO)] & 0xFFFF));
-    b.up    = +((vi_read(VI_V_VIDEO) >> 16)    - (vi.preset->regs[VI_TO_INDEX(VI_V_VIDEO)] >> 16));
-    b.down  = -((vi_read(VI_V_VIDEO) & 0xFFFF) - (vi.preset->regs[VI_TO_INDEX(VI_V_VIDEO)] & 0xFFFF));
+    b.left  = +((vi_read(VI_H_VIDEO) >> 16)    - vi.preset->display.x0);
+    b.right = -((vi_read(VI_H_VIDEO) & 0xFFFF) - (vi.preset->display.x0 + vi.preset->display.width));
+    b.up    = +((vi_read(VI_V_VIDEO) >> 16)    - vi.preset->display.y0);
+    b.down  = -((vi_read(VI_V_VIDEO) & 0xFFFF) - (vi.preset->display.y0 + vi.preset->display.height));
     return b;
 }
 
 vi_borders_t vi_calc_borders2(float aspect_ratio, float overscan_margin)
 {
-    const int vi_width = 640;
-    const int vi_height = get_tv_type() == TV_PAL ? 576 : 480;
+    const int vi_width = vi.preset->display.width;
+    const int vi_height = vi.preset->display.height;
     const float vi_par = (float)vi_width / vi_height;
     const float vi_dar = 4.0f / 3.0f;
     float correction = (aspect_ratio / vi_dar) * vi_par;
@@ -356,14 +375,9 @@ vi_borders_t vi_calc_borders2(float aspect_ratio, float overscan_margin)
 
 void vi_get_scroll_bounds(int *minx, int *maxx, int *miny, int *maxy)
 {
-    int width = vi_get_display_width();
-    int height = vi_get_display_height();
-
-    int *bounds = display_bounds[0];
-    *minx = bounds[0];
-    *miny = bounds[2];
-    *maxx = bounds[1] - width;
-    *maxy = bounds[3] - height;
+    vi_get_display_area_limits(minx, miny, maxx, maxy);
+    *maxx -= vi_get_display_width();
+    *maxy -= vi_get_display_height();
 }
 
 void vi_get_scroll(int *curx, int *cury)
@@ -426,14 +440,31 @@ void vi_init(void)
     // and set the pending mask to all registers, so that the whole
     // VI will be programmed at next vblank.
     memset(&vi, 0, sizeof(vi_state_t));
-    vi.preset = &vi_cfg_presets[get_tv_type()];
-    memcpy(&vi.cfg, vi.preset, sizeof(vi_config_t));
-    vi.cfg_pending = (1 << VI_REGISTERS_COUNT) - 1;
+    vi.preset = &vi_presets[get_tv_type()];
 
     vi_write_begin();
+
+    // Configure the timing registers from the preset. These will not change
+    // at runtime as they are fixed by the TV standard.
+    vi_write(VI_H_TOTAL, vi.preset->vi_h_total);
+    vi_write(VI_H_TOTAL_LEAP, vi.preset->vi_h_total_leap);
+    vi_write(VI_V_TOTAL, vi.preset->vi_v_total);
+    vi_write(VI_BURST, vi.preset->vi_burst);
+    vi_write(VI_V_BURST, vi.preset->vi_v_burst);
+
+    // Configure the default display area from the preset.
+    vi_set_display_area(vi.preset->display.x0, vi.preset->display.y0,
+                        vi.preset->display.x0 + vi.preset->display.width,
+                        vi.preset->display.y0 + vi.preset->display.height);
+
     uint32_t ctrl = 0;
     ctrl |= !sys_bbplayer() ? VI_PIXEL_ADVANCE_DEFAULT : VI_PIXEL_ADVANCE_BBPLAYER;
     vi_write(VI_CTRL, ctrl);
+
+    // Mark all registers as pending, so that they will be written at next vblank.
+    // This make sure we fully reset the VI.
+    vi.cfg_pending = (1 << VI_REGISTERS_COUNT) - 1;
+
     vi_write_end();
 
     disable_interrupts();
