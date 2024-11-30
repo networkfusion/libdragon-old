@@ -476,11 +476,11 @@ void vi_init(void)
 
     // Configure the timing registers from the preset. These will not change
     // at runtime as they are fixed by the TV standard.
-    vi_write(VI_H_TOTAL, vi.preset->vi_h_total);
+    vi_write(VI_H_TOTAL,      vi.preset->vi_h_total);
     vi_write(VI_H_TOTAL_LEAP, vi.preset->vi_h_total_leap);
-    vi_write(VI_V_TOTAL, vi.preset->vi_v_total);
-    vi_write(VI_BURST, vi.preset->vi_burst);
-    vi_write(VI_V_BURST, vi.preset->vi_v_burst);
+    vi_write(VI_V_TOTAL,      vi.preset->vi_v_total);
+    vi_write(VI_BURST,        vi.preset->vi_burst);
+    vi_write(VI_V_BURST,      vi.preset->vi_v_burst);
 
     // Configure the default display area from the preset.
     __set_output(vi.preset->display.x0, vi.preset->display.y0,
