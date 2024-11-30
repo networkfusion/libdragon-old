@@ -32,6 +32,7 @@ int main(void)
 
     vi_show(&fb1);
 
+    bool interlacing = false;
     bool hires = false;
     bool borders = false;
 
@@ -49,10 +50,16 @@ int main(void)
             vi_set_xscale(fb->width);
             vi_set_yscale(fb->height);
         }
-        if (btn.b) { 
+        if (btn.b) {
             hires = !hires;
+            debugf("HiRes: %d\n", hires);
             vi_show(hires ? &fb2 : &fb1);
             borders = false;
+        }
+        if (btn.z) {
+            interlacing = !interlacing;
+            debugf("Interlacing: %d\n", interlacing);
+            vi_set_interlaced(interlacing);
         }
 
         if (down.c_up)    vi_scroll(0, -1);

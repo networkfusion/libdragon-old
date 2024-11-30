@@ -110,6 +110,30 @@ static void __vi_interrupt(void)
             debugf("\n");
         }
     }
+
+    // VI adjustments in case of interlacing
+    uint32_t ctrl = vi_read(VI_CTRL);
+    if (ctrl & VI_CTRL_SERRATE) {
+        int field = *VI_V_CURRENT & 1;
+    
+        // When the field changes, we adjust VI_ORIGIN by one scanline.
+        int offset = 0;
+        if (field == 0) {
+            int bpp_shift = (vi_read(VI_CTRL) & VI_CTRL_TYPE) - 1;
+            offset = vi_read(VI_WIDTH) << bpp_shift;
+        } else {
+            *VI_ORIGIN = vi_read(VI_ORIGIN) + offset;
+        }
+    
+        // Workaround for a PAL-M VI bug on old boards like NUS-CPU-02. 
+        // On those consoles, V_BURST must be changed every field,
+        // otherwise the image seems garbled at the top.
+        // It is probably a bug in old revisions of the VI chip,
+        // since the problem doesn't exist on newer boards.
+        if (get_tv_type() == TV_MPAL) {
+            *VI_V_BURST ^= 0x000b0202 ^ 0x000e0204;
+        }
+    }
 }
 
 uint32_t vi_read(volatile uint32_t *reg) {
@@ -222,6 +246,8 @@ void vi_set_interlaced(bool interlaced)
 {
     vi_write_begin();
     vi_write_masked(VI_CTRL, VI_CTRL_SERRATE, interlaced ? VI_CTRL_SERRATE : 0);
+    // Progressive mode has one additional vertical half-line (the last odd one).
+    // So we need to adjust the LSB of V_TOTAL depending on the interlaced mode.
     vi_write_masked(VI_V_TOTAL, 0x1, interlaced ? 0 : 1);
     vi_write_end();
 }
