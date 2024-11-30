@@ -286,9 +286,12 @@ static void vi_get_display_area_limits(int *x0, int *y0, int *x1, int *y1)
     // that the vertical color burst enable/disable 
     *y0 = vsync_height;
 
-    // On the right/bottom, the display area is bound by the total picture length
+    // On the right/bottom, the display area is bound by the total picture length.
+    // The bounds are exclusive but V_VIDEO is compared to V_CURRENT to decide
+    // when to statp the display, and V_CURRENT will never be V_TOTAL (it'll wrap
+    // around). This means that it's impossible to draw on the last line.
     *x1 = htotal;
-    *y1 = vtotal;
+    *y1 = vtotal - 1;
 }
 
 void vi_set_borders(vi_borders_t b)
