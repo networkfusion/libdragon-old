@@ -283,62 +283,82 @@ void vi_wait_vblank(void);
 float vi_get_refresh_rate(void);
 
 /**
- * @brief Get the current configured borders
+ * @brief Get the current active display output area
  * 
- * @return vi_borders_t 
+ * This function returns the current VI display output area, which is the
+ * area on the output screen within which the framebuffer is displayed.
+ * The area is expressed in screen dots.
+ * 
+ * The theoretical total size of the screen is 773x525 on NTSC and M-PAL,
+ * and 794x625 on PAL, but some of that range won't actually be available for
+ * display as it would conflict with various sync signals. The maximum allowed
+ * output area can be queried at runtime using #vi_get_output_bounds.
+ * 
+ * These are the default display areas in the various TV standards:
+ * 
+ *  * NTSC and M-PAL: (108,35) - (748,515)
+ *  * PAL: (128,45) - (768,621)
+ * 
+ * @note The output area has nothing to do with the framebuffer size. It just
+ *       describes which part of the (virtual) TV screen is not black.
+ *       The framebuffer can have any size, and normally it will resampled to
+ *       fit the output area.
+ * 
+ * @param[out] x0       Horizontal start of the output area
+ * @param[out] y0       Vertical start of the output area
+ * @param[out] x1       Horizontal end of the output area (exclusive)
+ * @param[out] y1       Vertical end of the output area (exclusive)
+ * 
+ * @see #vi_get_output_bounds
+ * @see #vi_set_output
+ * @see #vi_move_output
+ */
+void vi_get_output(int *x0, int *y0, int *x1, int *y1);
+
+/**
+ * @brief Get the bounds for the output area
+ * 
+ * The output area is the area on the screen where the framebuffer is displayed.
+ * 
+ * The theoretical total size of the screen is 773x525 on NTSC and M-PAL,
+ * and 794x625 on PAL, but some of that range won't actually be available for
+ * display as it would conflict with various sync signals. If the output area
+ * was configure to overlap those signals, the picture would desync.
+ * 
+ * This function returns the actual bounds which the outut area can be
+ * configured. The bounds depend on the TV standard and whether interlacing
+ * is on or off. 
+ * 
+ * @param[out] x0       Minimum X coordinate that can be used for output.
+ * @param[out] y0       Minimum Y coordinate that can be used for output.
+ * @param[out] x1       Maximum X coordinate that can be used for output (exclusive)
+ * @param[out] y1       Maximum Y coordinate that can be used for output (exclusive)
+ */
+void vi_get_output_bounds(int *x0, int *y0, int *x1, int *y1);
+
+/**
+ * @brief Get the output area as a border structure
+ * 
+ * This function returns the current output area as a border structure. The
+ * output area is normally queried using #vi_get_output, but this function
+ * returns a different representation of the same area, in terms of size
+ * of the "borders".
+ * 
+ * The borders are expressed in dots, and they represent the offset from the
+ * default output area. For instance, on NTSC, the default output area is
+ * be (108,35) - (748,515). If you call this function, you will see that
+ * borders are 0. This means that the output area is the default one.
+ * 
+ * If you change the display area to (140,51) - (716,499), the borders will
+ * be (left=32, right=32, up=16, down=16), as they represent the offset
+ * from the default area. Positive values mean that the output area is
+ * smaller than the default one, while negative values mean that the output
+ * area is larger.
+ * 
+ * @return vi_borders_t         Size of the borders in the output area, with
+ *                              respect to the default output area.
  */
 vi_borders_t vi_get_borders(void);
-
-/**
- * @brief Return the active display width configured in VI
- * 
- * This is the amount of horizontal dots that are actually displayed by
- * VI. It will normally be 640, minus the configured borders if any.
- * 
- * @return int      Number of active horizontal screen dots
- */
-int vi_get_display_width(void);
-
-/**
- * @brief Return the active display height configured in VI
- * 
- * This is the amount of vertical dots that are actually displayed by
- * VI. It will normally be 480 (NTSC/MPAL) or 576 (PAL), minus the
- * configured borders if any.
- * 
- * @return int      Number of active vertical screen dots
- */
-int vi_get_display_height(void);
-
-/**
- * @brief Get the current offsets for the active display area
- * 
- * This function returns the current scroll offset for the active display
- * area, which is the top-left corner of the active display area, expressed
- * in VI dots.
- * 
- * @param curx      Pointer to store the horizontal scroll offset
- * @param cury      Pointer to store the vertical scroll offset
- * 
- * @see #vi_set_scroll
- * @see #vi_scroll
- */
-void vi_get_scroll(int *curx, int *cury);
-
-/**
- * @brief Get the bounds for the scrolling offset
- * 
- * This function returns the minimum and maximum values for the scrolling
- * offset, which are the values that the scroll offset can take without
- * causing display artifacts or even outright crashing the VI.
- * 
- * @param minx      Pointer to store the minimum horizontal scroll offset
- * @param maxx      Pointer to store the maximum horizontal scroll offset
- * @param miny      Pointer to store the minimum vertical scroll offset
- * @param maxy      Pointer to store the maximum vertical scroll offset
- */
-void vi_get_scroll_bounds(int *minx, int *maxx, int *miny, int *maxy);
-
 
 /** @} */
 
@@ -380,7 +400,7 @@ void vi_get_scroll_bounds(int *minx, int *maxx, int *miny, int *maxy);
 void vi_set_origin(void *buffer, int pixel_stride, int bpp);
 
 /**
- * @brief Configure the horizontal scale factor to display the framebuffer.
+ * @brief Configure the horizontal scale factor to display the specified framebuffer width
  * 
  * This function calculates and configures the horizontal scale factor
  * needed to display the specified framebuffer width on the screen, so
@@ -391,7 +411,7 @@ void vi_set_origin(void *buffer, int pixel_stride, int bpp);
 void vi_set_xscale(float fb_width);
 
 /**
- * @brief Configure the vertical scale factor to display the framebuffer.
+ * @brief Configure the vertical scale factor to display the specified framebuffer height.
  * 
  * This function calculates and configures the vertical scale factor
  * needed to display the specified framebuffer width on the screen, so
@@ -408,6 +428,66 @@ void vi_set_yscale(float fb_height);
  *                       interlaced mode.
  */
 void vi_set_interlaced(bool interlaced);
+
+/**
+ * @brief Set the active display output area
+ * 
+ * This function sets the active display output area to the specified
+ * coordinates. The area is expressed in screen dots.
+ * 
+ * Notice that not all positions are valid for the output, so the
+ * function will clamp it to make sure to keep the display stable (and
+ * avoid crashing the VI, which is not very tolerant to invalid values).
+ * The bounds for the output area can be queried using #vi_get_output_bounds.
+ * 
+ * @param x0        Horizontal start of the output area 
+ * @param y0        Vertical start of the output area
+ * @param x1        Horizontal end of the output area (exclusive)
+ * @param y1        Vertical end of the output area (exclusive)
+ */
+void vi_set_output(int x0, int y0, int x1, int y1);
+
+/**
+ * @brief Set the specified start position for the active display output area
+ * 
+ * This function sets the start position for the active display area (without 
+ * changing the size). The position is expressed in VI dots.
+ * 
+ * Notice that not all positions are valid for the output, so the
+ * function will clamp it to make sure to keep the display stable (and
+ * avoid crashing the VI, which is not very tolerant to invalid values).
+ * 
+ * To query the bounds for the output area, use #vi_get_output_bounds. Notice
+ * that you must ensure that the *full* output area fits the bounds; for instance
+ * if the horizontal bounds are 100-800 and output width is 500, the start
+ * position must be within 100 and 300. If you set it to 400, for instance,
+ * it will be automatically clamped to 300.
+ * 
+ * @param x             Horizontal scroll offset
+ * @param y             Vertical scroll offset
+ * 
+ * @see #vi_get_scroll_bounds
+ * @see #vi_get_scroll
+ * @see #vi_scroll
+ */
+void vi_move_output(int x, int y);
+
+/**
+ * @brief Scroll the active display area by the specified amount
+ * 
+ * This function is similar to #vi_move_output, but scrolls the display area
+ * by the specified relative amount, instead of setting the absolute position.
+ * 
+ * Like #vi_move_output, the function will clamp the position to make
+ * sure it is within the allowed bounds.
+ * 
+ * @param deltax        Horizontal scroll amount
+ * @param deltay        Vertical scroll amount
+ * 
+ * @see #vi_move_output
+ * @see #vi_get_output_bounds
+ */
+void vi_scroll_output(int deltax, int deltay);
 
 /**
  * @brief Calculate correct VI borders for a target aspect ratio.
@@ -431,62 +511,19 @@ void vi_set_interlaced(bool interlaced);
  *                          like #VI_CRT_MARGIN to get a good CRT default.
  * @return vi_borders_t The requested border settings
  */
-vi_borders_t vi_calc_borders2(float aspect_ratio, float overscan_margin);
+vi_borders_t vi_calc_borders(float aspect_ratio, float overscan_margin);
 
 /**
- * @brief Apply the specified borders
+ * @brief Configure the output area via the specified borders
  * 
- * Configures the VI to the specified border size.
+ * Configures the VI to the specified border size. This function is an
+ * alterantive to #vi_set_output: instead of specifying the output area
+ * directly, you can specify it in terms of borders with respect to the
+ * default output area. See #vi_get_borders for more information.
  * 
- * Notice that applying the border does *NOT* rescale the framebuffer picture:
- * the left and up border will translate it, while the right and down border
- * will just crop it.
- * 
- * If you want the top and left border to also crop the picture, you must 
- * adjust the framebuffer pointer (#vi_set_origin) accordingly.
- * 
- * @param b                 Borders to apply
+ * @param b                 Size of the borders to apply
  */
 void vi_set_borders(vi_borders_t b);
-
-/**
- * @brief Set the specified scroll offset for the active display area
- * 
- * This function sets the scroll offset for the active display area, which
- * basically corresponds to the top-left corner of the active display area,
- * expressed in VI dots.
- * 
- * Notice that not all positions are valid for the scroll offset, so the
- * function will clamp it to make sure to keep the display stable (and
- * avoid crashing the VI, which is not very tolerant to invalid values).
- * 
- * To query the bounds for the scrolling offset, use #vi_get_scroll_bounds.
- * 
- * @param x             Horizontal scroll offset
- * @param y             Vertical scroll offset
- * 
- * @see #vi_get_scroll_bounds
- * @see #vi_get_scroll
- * @see #vi_scroll
- */
-void vi_set_scroll(int x, int y);
-
-/**
- * @brief Scroll the active display area by the specified amount
- * 
- * This function is similar to #vi_set_scroll, but scrolls the display area
- * by the specified amount, instead of setting the absolute position.
- * 
- * The scrolling is clamped to the valid range.
- * 
- * @param deltax        Horizontal scroll amount
- * @param deltay        Vertical scroll amount
- * 
- * @see #vi_set_scroll
- * @see #vi_get_scroll
- * @see #vi_get_scroll_bounds
- */
-void vi_scroll(int deltax, int deltay);
 
 /**
  * @brief Show the specified surface (at next vblank)

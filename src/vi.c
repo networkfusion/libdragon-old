@@ -35,7 +35,7 @@ static const vi_preset_t vi_presets[3] = {
         .vi_h_total = VI_H_TOTAL_SET(0b00000, 3093),
         .vi_h_total_leap = VI_H_TOTAL_LEAP_SET(3093, 3093),
         .vi_v_total = VI_V_TOTAL_SET(525),
-        .vi_burst = VI_BURST_NTSC,
+        .vi_burst = VI_BURST_SET(62, 5, 34, 57),
         .vi_v_burst = VI_V_BURST_SET(14, 516),
         .display = {
             .x0 = 108, .y0 = 35,
@@ -47,7 +47,7 @@ static const vi_preset_t vi_presets[3] = {
         .vi_h_total = VI_H_TOTAL_SET(0b10101, 3177),
         .vi_h_total_leap = VI_H_TOTAL_LEAP_SET(3183, 3182),
         .vi_v_total = VI_V_TOTAL_SET(625),
-        .vi_burst = VI_BURST_PAL,
+        .vi_burst = VI_BURST_SET(64, 4, 35, 58),
         .vi_v_burst = VI_V_BURST_SET(9, 619),
         .display = {
             .x0 = 128, .y0 = 45,
@@ -59,7 +59,7 @@ static const vi_preset_t vi_presets[3] = {
         .vi_h_total = VI_H_TOTAL_SET(0b00100, 3089),
         .vi_h_total_leap = VI_H_TOTAL_LEAP_SET(3097, 3098),
         .vi_v_total = VI_V_TOTAL_SET(525),
-        .vi_burst = VI_BURST_MPAL,
+        .vi_burst = VI_BURST_SET(70, 5, 30, 57),
         .vi_v_burst = VI_V_BURST_SET(14, 516),
         .display = {
             .x0 = 108, .y0 = 35,
@@ -274,7 +274,7 @@ float vi_get_refresh_rate(void)
     return (float)clock / ((h_total * (v_total - 2) / 2 + h_total_leap_avg));
 }
 
-static void vi_get_display_area(int *x0, int *y0, int *x1, int *y1)
+static void __get_output(int *x0, int *y0, int *x1, int *y1)
 {
     uint32_t h_video = vi_read(VI_H_VIDEO);
     uint32_t v_video = vi_read(VI_V_VIDEO);
@@ -283,16 +283,22 @@ static void vi_get_display_area(int *x0, int *y0, int *x1, int *y1)
     *y0 = v_video >> 16; *y1 = v_video & 0xFFFF;
 }
 
-static void vi_set_display_area(int x0, int y0, int x1, int y1)
+static void __set_output(int x0, int y0, int x1, int y1)
 {
     vi_write_begin();
     vi_write(VI_H_VIDEO, VI_H_VIDEO_SET(x0, x1));
     vi_write(VI_V_VIDEO, VI_V_VIDEO_SET(y0, y1));
     vi_write_end();
-    debugf("VI active area: %d-%d %d-%d\n", x0, x1, y0, y1);
+
+    debugf("VI output: %d-%d %d-%d\n", x0, x1, y0, y1);
 }
 
-static void vi_get_display_area_limits(int *x0, int *y0, int *x1, int *y1)
+void vi_get_output(int *x0, int *y0, int *x1, int *y1)
+{
+    __get_output(x0, y0, x1, y1);
+}
+
+void vi_get_output_bounds(int *x0, int *y0, int *x1, int *y1)
 {
     uint32_t H_TOTAL = vi_read(VI_H_TOTAL);
     uint32_t V_TOTAL = vi_read(VI_V_TOTAL);
@@ -320,21 +326,10 @@ static void vi_get_display_area_limits(int *x0, int *y0, int *x1, int *y1)
     *y1 = vtotal - 1;
 }
 
-void vi_set_borders(vi_borders_t b)
+void vi_set_output(int x0, int y0, int x1, int y1)
 {
-    int x0 = vi.preset->display.x0, x1 = x0 + vi.preset->display.width;
-    int y0 = vi.preset->display.y0, y1 = y0 + vi.preset->display.height;
-
-    x0 += b.left;
-    x1 -= b.right;
-    y0 += b.up;
-    y1 -= b.down;
-
     int bounds[4];
-    vi_get_display_area_limits(&bounds[0], &bounds[2], &bounds[1], &bounds[3]);
-
-    debugf("VI limits: %d-%d %d-%d\n", bounds[0], bounds[1], bounds[2], bounds[3]);
-    debugf("Requested: %d-%d %d-%d\n", x0, x1, y0, y1);
+    vi_get_output_bounds(&bounds[0], &bounds[2], &bounds[1], &bounds[3]);
 
     if (x0 > bounds[1] || x1 < bounds[0] || y0 > bounds[3] || y1 < bounds[2]) {
         // If the image is totally out of bounds, just force zero display are
@@ -360,23 +355,36 @@ void vi_set_borders(vi_borders_t b)
         }
     }
 
-    vi_set_display_area(x0, y0, x1, y1);
+    __set_output(x0, y0, x1, y1);
+}
+
+void vi_set_borders(vi_borders_t b)
+{
+    int x0 = vi.preset->display.x0, x1 = x0 + vi.preset->display.width;
+    int y0 = vi.preset->display.y0, y1 = y0 + vi.preset->display.height;
+
+    x0 += b.left;
+    x1 -= b.right;
+    y0 += b.up;
+    y1 -= b.down;
+
+    vi_set_output(x0, y0, x1, y1);
 }
 
 vi_borders_t vi_get_borders(void)
 {
     int x0, y0, x1, y1;
-    vi_get_display_area(&x0, &y0, &x1, &y1);
+    __get_output(&x0, &y0, &x1, &y1);
 
     vi_borders_t b;
-    b.left  = +((vi_read(VI_H_VIDEO) >> 16)    - vi.preset->display.x0);
-    b.right = -((vi_read(VI_H_VIDEO) & 0xFFFF) - (vi.preset->display.x0 + vi.preset->display.width));
-    b.up    = +((vi_read(VI_V_VIDEO) >> 16)    - vi.preset->display.y0);
-    b.down  = -((vi_read(VI_V_VIDEO) & 0xFFFF) - (vi.preset->display.y0 + vi.preset->display.height));
+    b.left  = +(x0 - vi.preset->display.x0);
+    b.right = -(x1 - (vi.preset->display.x0 + vi.preset->display.width));
+    b.up    = +(y0 - vi.preset->display.y0);
+    b.down  = -(y1 - (vi.preset->display.y0 + vi.preset->display.height));
     return b;
 }
 
-vi_borders_t vi_calc_borders2(float aspect_ratio, float overscan_margin)
+vi_borders_t vi_calc_borders(float aspect_ratio, float overscan_margin)
 {
     const int vi_width = vi.preset->display.width;
     const int vi_height = vi.preset->display.height;
@@ -404,37 +412,28 @@ vi_borders_t vi_calc_borders2(float aspect_ratio, float overscan_margin)
     return b;
 }
 
-void vi_get_scroll_bounds(int *minx, int *maxx, int *miny, int *maxy)
-{
-    vi_get_display_area_limits(minx, miny, maxx, maxy);
-    *maxx -= vi_get_display_width();
-    *maxy -= vi_get_display_height();
-}
-
-void vi_get_scroll(int *curx, int *cury)
+void vi_move_output(int x, int y)
 {
     int x0, y0, x1, y1;
-    vi_get_display_area(&x0, &y0, &x1, &y1);
-    *curx = x0;
-    *cury = y0;
-}
-
-void vi_set_scroll(int x, int y)
-{
-    int curx, cury;
-    vi_get_scroll(&curx, &cury);
-    vi_scroll(x - curx, y - cury);
-}
-
-void vi_scroll(int x, int y)
-{
+    __get_output(&x0, &y0, &x1, &y1);
+    
+    int dx = x1 - x0, dy = y1 - y0;
     vi_write_begin();
-    vi_borders_t b = vi_get_borders();
-    b.left += x;
-    b.right -= x;
-    b.up += y;
-    b.down -= y;
-    vi_set_borders(b);
+    x0 += dx; x1 += dx;
+    y0 += dy; y1 += dy;
+    vi_set_output(x0, y0, x1, y1);
+    vi_write_end();
+}
+
+void vi_scroll_output(int dx, int dy)
+{
+    int x0, y0, x1, y1;
+    __get_output(&x0, &y0, &x1, &y1);
+
+    vi_write_begin();
+    x0 += dx; x1 += dx;
+    y0 += dy; y1 += dy;
+    vi_set_output(x0, y0, x1, y1);
     vi_write_end();
 }
 
@@ -484,7 +483,7 @@ void vi_init(void)
     vi_write(VI_V_BURST, vi.preset->vi_v_burst);
 
     // Configure the default display area from the preset.
-    vi_set_display_area(vi.preset->display.x0, vi.preset->display.y0,
+    __set_output(vi.preset->display.x0, vi.preset->display.y0,
                         vi.preset->display.x0 + vi.preset->display.width,
                         vi.preset->display.y0 + vi.preset->display.height);
 

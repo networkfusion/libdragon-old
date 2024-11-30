@@ -71,7 +71,7 @@
  * ratios (eg: 16:9).
  * 
  * To help calculating the borders by taking both potential goals into account
- * (overscan compensation and aspect ratio changes), you can use #vi_calc_borders.
+ * (overscan compensation and aspect ratio changes), you can use #vi_calc_borders_int.
  */
 #ifndef __LIBDRAGON_VI_INTERNAL_H
 #define __LIBDRAGON_VI_INTERNAL_H
@@ -348,7 +348,7 @@ static const vi_config_t vi_config_presets[2][3] = {
  * For instance, to create a 16:9 resolution, you can do:
  * 
  * \code{.c}
- *      vi_borders_t borders = vi_calc_borders(TV_NTSC, 16./9, false);
+ *      vi_borders_t borders = vi_calc_borders_int(TV_NTSC, 16./9, false);
  * \endcode
  * 
  * @param tv_type           TV type for which the calculation should be performed
@@ -359,7 +359,7 @@ static const vi_config_t vi_config_presets[2][3] = {
  * 
  * @return vi_borders_t The requested border settings
  */
-static inline vi_borders_t vi_calc_borders(int tv_type, float aspect_ratio, float overscan_margin)
+static inline vi_borders_t vi_calc_borders_int(int tv_type, float aspect_ratio, float overscan_margin)
 {
     const int vi_width = 640;
     const int vi_height = tv_type == TV_PAL ? 576 : 480;

@@ -45,7 +45,7 @@ int main(void)
 
         if (btn.a) { 
             borders = !borders;
-            vi_set_borders(vi_calc_borders2(4.0f / 3.0f, borders ? VI_CRT_MARGIN : 0));
+            vi_set_borders(vi_calc_borders(4.0f / 3.0f, borders ? VI_CRT_MARGIN : 0));
             surface_t *fb = hires ? &fb2 : &fb1;
             vi_set_xscale(fb->width);
             vi_set_yscale(fb->height);
@@ -62,10 +62,10 @@ int main(void)
             vi_set_interlaced(interlacing);
         }
 
-        if (down.c_up)    vi_scroll(0, -1);
-        if (down.c_down)  vi_scroll(0, 1);
-        if (down.c_left)  vi_scroll(-1, 0);
-        if (down.c_right) vi_scroll(1, 0);
+        if (down.c_up)    vi_scroll_output(0, -1);
+        if (down.c_down)  vi_scroll_output(0, 1);
+        if (down.c_left)  vi_scroll_output(-1, 0);
+        if (down.c_right) vi_scroll_output(1, 0);
         vi_write_end();
 
         vi_wait_vblank();
