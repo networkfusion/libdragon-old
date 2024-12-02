@@ -106,6 +106,8 @@ typedef struct vi_config_s{
 #define VI_PIXEL_ADVANCE_DEFAULT            (0b0011 << 12)
 /** @brief VI_CTRL Register setting: default value for pixel advance on iQue. */
 #define VI_PIXEL_ADVANCE_BBPLAYER           (0b0001 << 12)
+/** @brief VI_CTRL Register setting: mask for AA mode configuration */
+#define VI_AA_MODE_MASK                     (0b11 << 8)
 /** @brief VI_CTRL Register setting: disable AA / resamp. */
 #define VI_AA_MODE_NONE                     (0b11 << 8)
 /** @brief VI_CTRL Register setting: disable AA / enable resamp. */

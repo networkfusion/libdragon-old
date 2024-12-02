@@ -156,6 +156,80 @@ typedef struct vi_borders_s {
     int16_t left, right, up, down;
 } vi_borders_t;
 
+/** 
+ * @brief VI AA Mode
+ * 
+ * This setting configures the resampling and AA filters performed
+ * by VI during the framebuffer display.
+ * 
+ * Notice that VI seems a bit incomplete / buggy in this area, so
+ * not all filter-related settings are guaranteed to work in all
+ * contexts. 
+ */
+typedef enum vi_aa_mode_e {
+    /** 
+     * @brief Disable the resampling and AA filter.
+     * 
+     * @note Because of a hardware bug on NTSC units, don't use
+     *       this mode in 16 bpp mode and framebuffer widths lower or
+     *       equal to 320 pixels.
+     */
+    VI_AA_MODE_NONE                  = (0b11 << 8),
+
+    /**
+     * @brief Enable bilinear filtering during resampling
+     * 
+     * With this setting, the VI will perform true 2x2 bilinear filtering
+     * while resampling the framebuffer into the display output.
+     * 
+     * @note This mode is not compatible with dedithering
+     *       (#vi_set_dedither).
+     */
+    VI_AA_MODE_RESAMPLE              = (0b10 << 8),
+
+    /**
+     * @brief Enable AA filter (in addition to bilinear resampling).
+     * 
+     * This filter is useful to reduce aliasing artifacts. It works by
+     * smoothing pixels that represent external edges of polygons/meshes.
+     * Since VI works on the final framebuffer picture, it has no knowledge
+     * of the 3D scene that was drawn over it, so it uses pixel coverage
+     * information (left by RDP in the framebuffer), to identify which
+     * pixels to smooth.
+     * 
+     * Doing AA filter will have a performance impact (compared to pure 
+     * bilinear resampling, which is #VI_AA_MODE_RESAMPLE) because of the
+     * extra memory bandwidth required.
+     * 
+     * @note This setting seems to cause image corruption in high-bandwidth
+     *       scenarios, like high-resolution framebuffers. Use
+     *       #VI_AA_MODE_RESAMPLE_FETCH_ALWAYS in those cases (though it will 
+     *       impact general performance more).
+     * 
+     * @note This setting is not compatible with dedithering
+     *       (#vi_set_dedither).
+     */
+    VI_AA_MODE_RESAMPLE_FETCH_NEEDED = (0b01 << 8),
+
+    /**
+     * @brief Enable AA filter (in addition to bilinear resampling).
+     * 
+     * This is similar to #VI_AA_MODE_RESAMPLE_FETCH_NEEDED. The exact
+     * difference is not known at this time: it seems to impact the way
+     * internally VI fetches pixels from memory. The AA filter itself is
+     * identical, so the picture will look the same on the screen.
+     * 
+     * The known outcomes of setting this mode are:
+     * 
+     *  * It seems completely broken in 32-bpp mode. It's not clear if it's
+     *    a bandwidth issue or it's just a bug in the hardware.
+     *  * It seems to fix screen artifacts that appear with #VI_AA_MODE_RESAMPLE_FETCH_NEEDED
+     *    in high-bandwidth scenarios, like high-resolution framebuffers.
+     *  * It causes a bit more performance impact.
+     */
+    VI_AA_MODE_RESAMPLE_FETCH_ALWAYS = (0b00 << 8),
+} vi_aa_mode_t;
+
 
 /** @brief Initialize the VI module */
 void vi_init(void);
@@ -258,6 +332,14 @@ void vi_write_end(void);
  * If the VI is not active, this function will return immediately.
  */
 void vi_wait_vblank(void);
+
+/**
+ * @brief Dump the current status of all VI registers
+ * 
+ * @param verbose      Verbosity mode of dump
+ *                     0=just hex values, 1=decoded values
+ */
+void vi_debug_dump(int verbose);
 
 /** @} */
 
@@ -405,8 +487,13 @@ void vi_set_origin(void *buffer, int pixel_stride, int bpp);
  * This function calculates and configures the horizontal scale factor
  * needed to display the specified framebuffer width on the screen, so
  * that it fits exactly the active display area.
+ * 
+ * If OUT_WIDTH is the width of the output area (as returned by #vi_get_output),
+ * this function is equivalent to calling `vi_set_xscale_factor(fb_width / OUT_WIDTH)`.
  *  
  * @param fb_width      Width of the framebuffer in pixels
+ * 
+ * @ßee #vi_set_xscale_factor
  */
 void vi_set_xscale(float fb_width);
 
@@ -422,12 +509,101 @@ void vi_set_xscale(float fb_width);
 void vi_set_yscale(float fb_height);
 
 /**
+ * @brief Set the horizontal scaling factor.
+ * 
+ * Set the scale factor applied to the framebuffer width to display it on the screen.
+ * The \p factor term describes how many framebuffer pixels advance for each
+ * output dot. For instance, a factor of 0.5 means that each framebuffer pixel
+ * will be repeated twice horizontally on the screen, onto two output dots.
+ * 
+ * You can use #vi_set_xscale to automatically calculate the factor needed
+ * to display the framebuffer width on the screen.
+ * 
+ * @param factor        Horizontal scale factor to set
+ * 
+ * @see #vi_set_xscale
+ */
+void vi_set_xscale_factor(float xfactor);
+
+/**
+ * @brief Set the vertical scaling factor.
+ * 
+ * Set the scale factor applied to the framebuffer height to display it on the screen.
+ * The \p factor term describes how many framebuffer pixels advance for each
+ * output scanline. For instance, a factor of 0.5 means that each framebuffer pixel
+ * will be repeated twice vertically on the screen, onto two scanlines.
+ * 
+ * @param factor        Horizontal scale factor to set
+ */
+void vi_set_yscale_factor(float yfactor);
+
+/**
  * @brief Enable or disable the interlaced mode
  * 
  * @param interlaced     If true, the VI will display the framebuffer in
  *                       interlaced mode.
  */
 void vi_set_interlaced(bool interlaced);
+
+/** 
+ * @brief Enable / disable AA mode for the VI
+ * 
+ * The AA mode specifies a set of filters to apply to the framebuffer
+ * during the resampling process. See #vi_aa_mode_t for more information.
+ * 
+ * @param aa_mode       AA mode to set
+ */
+void vi_set_aa_mode(vi_aa_mode_t aa_mode);
+
+/**
+ * @brief Enable / disable the divot filter
+ * 
+ * Divot filter is a post-processing filter, on top of anti-alias filters,
+ * that is designed to remove a few single-point artifacts that can appear
+ * in the framebuffer.
+ * 
+ * Divot only makes sense if you are using an AA filter, that is, the AA mode
+ * is set to either #VI_AA_MODE_RESAMPLE_FETCH_NEEDED or
+ * #VI_AA_MODE_RESAMPLE_FETCH_ALWAYS.
+ * 
+ * @param divot         If true, the divot filter will be enabled
+ */
+void vi_set_divot(bool divot);
+
+/**
+ * @brief Enable / disable dedithering
+ * 
+ * Dedithering (or "dither filter") is a filter that tries to apply an
+ * error correction on top of a dithered 16-bit framebuffer, trying to 
+ * restore part of the original 32-bit color information. It works best
+ * when the framebuffer was drawn with the RDP "magic square" dithering
+ * pattern, as it's designed to reverse exactly that.
+ * 
+ * Dedithering only makes sense for 16-bit, dithered framebuffers.
+ * 
+ * @note Dedithering is not compatible with all AA filters. In particular, it
+ *       only works with #VI_AA_MODE_NONE and #VI_AA_MODE_RESAMPLE_FETCH_ALWAYS.
+ */
+void vi_set_dedither(bool dedither);
+
+/**
+ * @brief Enable / disable gamma correction
+ * 
+ * VI is able to apply a gamma correction filter to the framebuffer. 
+ * 
+ * Gamma correction is meant to convert a framebuffer with pixels in linear
+ * RGB space, into the non-linear sRGB space expected by most displays.
+ * Normally, this is not required because all assets are already provided in
+ * sRGB color space, which is how most authoring tools save PNGs nowadays. 
+ * 
+ * Drawing in linear space would in theory be useful to produce more accurate
+ * lighting and blending effects, though testing showed that this is really
+ * only visible with 32 bpp framebuffers, which are normally not used. If you
+ * want to experiment with working in linear space, make sure to provide
+ * assets in that format (which normally means using the --gamma option to
+ * mksprite to convert sRGB PNG pixels into linear space).
+ */
+void vi_set_gamma(bool gamma);
 
 /**
  * @brief Set the active display output area

@@ -79,6 +79,54 @@ typedef struct vi_state_s {
 
 static vi_state_t vi;
 
+static void __vi_validate_config(void)
+{
+    // Check for some common mistakes in VI configuration. Since they are based
+    // on VI_CTRL and VI_X_SCALE, do that only if they have been changed.
+    if (!(vi.cfg_pending & ((1 << VI_TO_INDEX(VI_CTRL)) | (1 << VI_TO_INDEX(VI_X_SCALE)))))
+        return;
+
+    uint32_t ctrl = vi_read(VI_CTRL); 
+    uint32_t xscale = vi_read(VI_X_SCALE);
+    bool bpp16 = (ctrl & VI_CTRL_TYPE) == VI_CTRL_TYPE_16_BPP;
+    bool dedither = ctrl & VI_DEDITHER_FILTER_ENABLE;
+    bool divot = ctrl & VI_DIVOT_ENABLE;
+    int mode = ctrl & VI_AA_MODE_MASK;
+
+    switch (mode) {
+    case VI_AA_MODE_NONE:
+        if (xscale <= 0x200 && bpp16)
+            debugf("VI WARNING: setting VI_AA_MODE_NONE with 16 bpp and VI_X_SCALE <= 0x200 (aka: framebuffer widths <= 320) can cause artifacts on NTSC\n");
+        if (divot)
+            debugf("VI WARNING: divot filter is only useful when the AA filter is enabled\n");
+        break;
+
+    case VI_AA_MODE_RESAMPLE:
+        if (dedither)
+            debugf("VI WARNING: setting VI_AA_MODE_RESAMPLE with dedithering can cause artifacts\n");
+        if (divot)
+            debugf("VI WARNING: divot filter is only useful when the AA filter is enabled\n");
+        break;
+
+    case VI_AA_MODE_RESAMPLE_FETCH_NEEDED:
+        if (xscale > 0x280)
+            debugf("VI WARNING: setting VI_AA_MODE_RESAMPLE_FETCH_NEEDED with VI_X_SCALE >= 0x280 (aka: framebuffer widths > 400) can cause artifacts\n");
+        break;
+
+    case VI_AA_MODE_RESAMPLE_FETCH_ALWAYS:
+        if (!bpp16)
+            debugf("VI WARNING: setting VI_AA_MODE_RESAMPLE_FETCH_ALWAYS with 32 bpp can often cause image corruption\n");
+        break;
+    }
+
+    if (dedither) {
+        if (!bpp16)
+            debugf("VI WARNING: dedithering is only useful with 16 bpp\n");
+        if (mode != VI_AA_MODE_RESAMPLE_FETCH_ALWAYS)
+            debugf("VI WARNING: dedithering requires VI_AA_MODE_RESAMPLE_FETCH_ALWAYS\n");
+    }
+}
+
 static void __vi_interrupt(void)
 {
     // Apply any pending changes (unless suspended because
@@ -89,25 +137,15 @@ static void __vi_interrupt(void)
     // 2) we want to still allow user code to manually bang the
     // registers, if anything for increased backward compatibility.
     if (vi.cfg_refcount == 0) {
-        bool debug = false;
         for (int idx=0; vi.cfg_pending; idx++) {
             if (vi.cfg_pending & (1 << idx)) {
                 VI_REGISTERS[idx] = vi.cfg.regs[idx];
                 vi.cfg_pending ^= 1 << idx;
-                debug = true;
             }
         }
         if (vi.pending_blank) {
             *VI_H_VIDEO = 0;
             vi.pending_blank = false;
-        }
-        if (debug) {
-            debugf("VI regs:\n");
-            for (int i=0; i<VI_REGISTERS_COUNT; i++) {
-                debugf("  %08lx ", vi.cfg.regs[i]);
-                if ((i & 3) == 3) debugf("\n");
-            }
-            debugf("\n");
         }
     }
 
@@ -149,6 +187,9 @@ static void vi_write_maybe_flush(void)
 {
     if (vi.cfg_refcount > 0) return;
 
+    // Validate the configuration and emit warnings if needed
+    __vi_validate_config();
+
     // Check if we are in vblank now, and if so, we can apply the changes
     // immediately. Notice that this is not just a latency optimization:
     // it is mandatory when VI is disabled (VI_CTRL=0, which makes VI_V_CURRENT=0),
@@ -184,16 +225,21 @@ void vi_write_masked(volatile uint32_t *reg, uint32_t wmask, uint32_t value)
     vi_write_idx_masked(VI_TO_INDEX(reg), wmask, value);
 }
 
-int vi_get_display_width(void)
+static void __get_output(int *x0, int *y0, int *x1, int *y1)
 {
     uint32_t h_video = vi_read(VI_H_VIDEO);
-    return (h_video & 0xffff) - (h_video >> 16);
+    uint32_t v_video = vi_read(VI_V_VIDEO);
+
+    *x0 = h_video >> 16; *x1 = h_video & 0xFFFF;
+    *y0 = v_video >> 16; *y1 = v_video & 0xFFFF;
 }
 
-int vi_get_display_height(void)
+static void __set_output(int x0, int y0, int x1, int y1)
 {
-    uint32_t v_video = vi_read(VI_V_VIDEO);
-    return (v_video & 0xffff) - (v_video >> 16);
+    vi_write_begin();
+    vi_write(VI_H_VIDEO, VI_H_VIDEO_SET(x0, x1));
+    vi_write(VI_V_VIDEO, VI_V_VIDEO_SET(y0, y1));
+    vi_write_end();
 }
 
 void vi_set_origin(void *buffer, int width, int bpp)
@@ -209,14 +255,30 @@ void vi_set_origin(void *buffer, int width, int bpp)
 
 void vi_set_xscale(float fb_width)
 {
-    int vi_width = vi_get_display_width();
-    vi_write_masked(VI_X_SCALE, 0xFFFF, VI_X_SCALE_SET(fb_width, vi_width));
+    int x0, y0, x1, y1;
+    __get_output(&x0, &y0, &x1, &y1);
+    vi_write_masked(VI_X_SCALE, 0xFFF, VI_X_SCALE_SET(fb_width, x1-x0));
 }
 
 void vi_set_yscale(float fb_height)
 {
-    int vi_height = vi_get_display_height() / 2;
-    vi_write_masked(VI_Y_SCALE, 0xFFFF, VI_Y_SCALE_SET(fb_height, vi_height));
+    int x0, y0, x1, y1;
+    __get_output(&x0, &y0, &x1, &y1);
+    vi_write_masked(VI_Y_SCALE, 0xFFF, VI_Y_SCALE_SET(fb_height, y1-y0));
+}
+
+void vi_set_xscale_factor(float xfactor)
+{
+    int xscale = (int)((xfactor * 1024.0f) + 0.5f);
+    assertf(xscale >= 0 && xscale <= 0xFFF, "xfactor out of range: %f", xfactor);
+    vi_write_masked(VI_X_SCALE, 0xFFF, (int)((xfactor * 1024.0f) + 0.5f));
+}
+
+void vi_set_yscale_factor(float yfactor)
+{
+    int yscale = (int)((yfactor * 1024.0f) + 0.5f);
+    assertf(yscale >= 0 && yscale <= 0xFFF, "yfactor out of range: %f", yfactor);
+    vi_write_masked(VI_Y_SCALE, 0xFFF, yscale);
 }
 
 void vi_show(surface_t *fb)
@@ -252,6 +314,26 @@ void vi_set_interlaced(bool interlaced)
     vi_write_end();
 }
 
+void vi_set_aa_mode(vi_aa_mode_t mode)
+{
+    vi_write_masked(VI_CTRL, VI_AA_MODE_MASK, mode);
+}
+
+void vi_set_divot(bool enable)
+{
+    vi_write_masked(VI_CTRL, VI_DIVOT_ENABLE, enable ? VI_DIVOT_ENABLE : 0);
+}
+
+void vi_set_dedither(bool enable)
+{
+    vi_write_masked(VI_CTRL, VI_DEDITHER_FILTER_ENABLE, enable ? VI_DEDITHER_FILTER_ENABLE : 0);
+}
+
+void vi_set_gamma(bool enable)
+{
+    vi_write_masked(VI_CTRL, VI_GAMMA_ENABLE, enable ? VI_GAMMA_ENABLE : 0);
+}
+
 float vi_get_refresh_rate(void)
 {
     int clock = vi.preset->clock;
@@ -272,25 +354,6 @@ float vi_get_refresh_rate(void)
     int h_total_leap_avg = (h_total_leap_a * leap_bitcount + h_total_leap_b * (5 - leap_bitcount)) / 5;
 
     return (float)clock / ((h_total * (v_total - 2) / 2 + h_total_leap_avg));
-}
-
-static void __get_output(int *x0, int *y0, int *x1, int *y1)
-{
-    uint32_t h_video = vi_read(VI_H_VIDEO);
-    uint32_t v_video = vi_read(VI_V_VIDEO);
-
-    *x0 = h_video >> 16; *x1 = h_video & 0xFFFF;
-    *y0 = v_video >> 16; *y1 = v_video & 0xFFFF;
-}
-
-static void __set_output(int x0, int y0, int x1, int y1)
-{
-    vi_write_begin();
-    vi_write(VI_H_VIDEO, VI_H_VIDEO_SET(x0, x1));
-    vi_write(VI_V_VIDEO, VI_V_VIDEO_SET(y0, y1));
-    vi_write_end();
-
-    debugf("VI output: %d-%d %d-%d\n", x0, x1, y0, y1);
 }
 
 void vi_get_output(int *x0, int *y0, int *x1, int *y1)
@@ -460,6 +523,30 @@ void vi_wait_vblank(void)
     }
 }
 
+void vi_debug_dump(int verbose)
+{
+    debugf("CTRL:0x%08lx ORIGIN:0x%06lx WIDTH:0x%08lx V_INTR:0x%lx V_CURRENT:0x%lx\n",
+        vi_read(VI_CTRL), vi_read(VI_ORIGIN), vi_read(VI_WIDTH), vi_read(VI_V_INTR), *VI_V_CURRENT);
+    debugf("BURST:0x%08lx V_BURST:0x%08lx H_TOTAL:0x%08lx H_TOTAL_LEAP:0x%08lx V_TOTAL:0x%08lx\n",
+        vi_read(VI_BURST), vi_read(VI_V_BURST), vi_read(VI_H_TOTAL), vi_read(VI_H_TOTAL_LEAP), vi_read(VI_V_TOTAL));
+    debugf("H_VIDEO:0x%08lx, V_VIDEO:0x%08lx X_SCALE:0x%08lx Y_SCALE:0x%08lx\n",
+        vi_read(VI_H_VIDEO), vi_read(VI_V_VIDEO), vi_read(VI_X_SCALE), vi_read(VI_Y_SCALE));
+
+    if (verbose == 0)
+        return;
+
+    debugf("VIDEO: H:%ld-%ld V:%ld-%ld\n", vi_read(VI_H_VIDEO) >> 16, vi_read(VI_H_VIDEO) & 0xFFFF, vi_read(VI_V_VIDEO) >> 16, vi_read(VI_V_VIDEO) & 0xFFFF);
+
+    uint32_t x_scale = vi_read(VI_X_SCALE);
+    uint32_t y_scale = vi_read(VI_Y_SCALE);
+    debugf("SCALE: X=%.5f (0x%03lx) Y=%.5f (0x%03lx)\n", 
+        (x_scale & 0xFFF) / 1024.0f, x_scale & 0xFFF,
+        (y_scale & 0xFFF) / 1024.0f, y_scale & 0xFFF);
+    debugf("OFFSET: X=%.5f (0x%03lx) Y=%0.5f (0x%03lx)\n",
+        (x_scale >> 16) / 1024.0f, x_scale >> 16,
+        (y_scale >> 16) / 1024.0f, y_scale >> 16);
+}
+
 void vi_init(void)
 {
     static bool inited = false;
@@ -484,8 +571,8 @@ void vi_init(void)
 
     // Configure the default display area from the preset.
     __set_output(vi.preset->display.x0, vi.preset->display.y0,
-                        vi.preset->display.x0 + vi.preset->display.width,
-                        vi.preset->display.y0 + vi.preset->display.height);
+                 vi.preset->display.x0 + vi.preset->display.width,
+                 vi.preset->display.y0 + vi.preset->display.height);
 
     uint32_t ctrl = 0;
     ctrl |= !sys_bbplayer() ? VI_PIXEL_ADVANCE_DEFAULT : VI_PIXEL_ADVANCE_BBPLAYER;
