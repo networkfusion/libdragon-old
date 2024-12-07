@@ -81,6 +81,11 @@ static vi_state_t vi;
 
 static void __vi_validate_config(void)
 {
+    #ifdef NDEBUG
+    // Disable validation in NDEBUG builds
+    return;
+    #endif
+
     // Check for some common mistakes in VI configuration. Since they are based
     // on VI_CTRL and VI_X_SCALE, do that only if they have been changed.
     if (!(vi.cfg_pending & ((1 << VI_TO_INDEX(VI_CTRL)) | (1 << VI_TO_INDEX(VI_X_SCALE)))))
