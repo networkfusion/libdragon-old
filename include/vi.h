@@ -631,14 +631,14 @@ void vi_set_yscale(float fb_height);
  * @brief Set the horizontal scaling factor.
  * 
  * Set the scale factor applied to the framebuffer width to display it on the screen.
- * The \p factor term describes how many framebuffer pixels advance for each
+ * The \p xfactor term describes how many framebuffer pixels advance for each
  * output dot. For instance, a factor of 0.5 means that each framebuffer pixel
  * will be repeated twice horizontally on the screen, onto two output dots.
  * 
  * You can use #vi_set_xscale to automatically calculate the factor needed
  * to display the framebuffer width on the screen.
  * 
- * @param factor        Horizontal scale factor to set
+ * @param xfactor        Horizontal scale factor to set
  * 
  * @see #vi_set_xscale
  */
@@ -648,11 +648,11 @@ void vi_set_xscale_factor(float xfactor);
  * @brief Set the vertical scaling factor.
  * 
  * Set the scale factor applied to the framebuffer height to display it on the screen.
- * The \p factor term describes how many framebuffer pixels advance for each
+ * The \p yfactor term describes how many framebuffer pixels advance for each
  * output scanline. For instance, a factor of 0.5 means that each framebuffer pixel
  * will be repeated twice vertically on the screen, onto two scanlines.
  * 
- * @param factor        Horizontal scale factor to set
+ * @param yfactor        Horizontal scale factor to set
  */
 void vi_set_yscale_factor(float yfactor);
 
@@ -761,9 +761,9 @@ void vi_set_output(int x0, int y0, int x1, int y1);
  * @param x             Horizontal scroll offset
  * @param y             Vertical scroll offset
  * 
- * @see #vi_get_scroll_bounds
- * @see #vi_get_scroll
- * @see #vi_scroll
+ * @see #vi_get_output_bounds
+ * @see #vi_get_output
+ * @see #vi_scroll_output
  */
 void vi_move_output(int x, int y);
 

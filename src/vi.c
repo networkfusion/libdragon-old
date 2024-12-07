@@ -68,12 +68,13 @@ static const vi_preset_t vi_presets[3] = {
     },
 };
 
+/** @brief Line interrupt callbacks */
 typedef struct {
-    int line;
-    void (*handler)(void);
+    int line;                          ///< Line number
+    void (*handler)(void);             ///< Callback function
 } line_irqs_t;
 
-line_irqs_t line_irqs[16] = {0};
+line_irqs_t line_irqs[16] = {0};       ///< Line interrupt callbacks
 
 static vi_config_t cfg;                ///< Current VI configuration
 static const vi_preset_t *preset;      ///< Active TV preset
