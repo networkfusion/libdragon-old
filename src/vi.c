@@ -519,6 +519,10 @@ void vi_wait_vblank(void)
         kirq_wait(&w);
         return;
     } else {
+        // We define the vblank as the 0->2 current line transition. We can't
+        // just check if line 2 is current (VI_V_CURRENT_VBLANK) because it
+        // would cause multiple subsequent calls not to wait the next vblank.
+        while ((*VI_V_CURRENT & ~1) != VI_V_CURRENT_VBLANK-2) {}
         while ((*VI_V_CURRENT & ~1) != VI_V_CURRENT_VBLANK) {}
     }
 }
