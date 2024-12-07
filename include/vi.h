@@ -123,6 +123,8 @@ typedef struct surface_s surface_t;
 /** @brief VI register by index (0-13)*/
 #define VI_TO_REGISTER(index) (((index) >= 0 && (index) <= VI_REGISTERS_COUNT)? &VI_REGISTERS[index] : NULL)
 
+/** Under VI_CTRL */
+
 /** @brief VI_CTRL Register setting: enable dedither filter. */
 #define VI_DEDITHER_FILTER_ENABLE           (1<<16)
 /** @brief VI_CTRL Register setting: default value for pixel advance. */
@@ -195,39 +197,6 @@ typedef struct surface_s surface_t;
 /**  Under VI_Y_SCALE   */
 /** @brief VI_Y_SCALE Register: set 1/vertical scale up factor (value is converted to 2.10 format) */
 #define VI_Y_SCALE_SET(from, to)            ((1024 * (from) + (to) / 2 ) / (to))
-
-/**  Under VI_V_TOTAL */
-/** @brief VI_V_TOTAL Register: set the total number of visible and non-visible half-lines (-1). */
-#define VI_V_TOTAL_SET(vsync)               (vsync)
-
-/**  Under VI_H_TOTAL */
-/** @brief VI_H_TOTAL Register: set the total width of a line in quarter-pixel units (-1), and the 5-bit leap pattern. */
-#define VI_H_TOTAL_SET(leap_pattern, hsync)  ((((leap_pattern) & 0x1F) << 16) | ((hsync) & 0xFFF))
-
-/**  Under VI_H_TOTAL_LEAP */
-/** @brief VI_H_TOTAL_LEAP Register: set alternate scanline lengths for one scanline during vsync, leap_a and leap_b are selected based on the leap pattern in VI_H_SYNC. */
-#define VI_H_TOTAL_LEAP_SET(leap_a, leap_b)  ((((leap_a) & 0xFFF) << 16) | ((leap_b) & 0xFFF))
-
-/**  Under VI_H_VIDEO */
-/** @brief VI_H_VIDEO Register: set the horizontal start and end of the active video area, in screen pixels */
-#define VI_H_VIDEO_SET(start, end)          ((((start) & 0x3FF) << 16) | ((end) & 0x3FF))
-
-/**  Under VI_V_VIDEO */
-/** @brief VI_V_VIDEO Register: set the vertical start and end of the active video area, in half-lines */
-#define VI_V_VIDEO_SET(start, end)          ((((start) & 0x3FF) << 16) | ((end) & 0x3FF))
-
-/**  Under VI_V_BURST */
-/** @brief VI_V_BURST Register: set the start and end of color burst enable, in half-lines */
-#define VI_V_BURST_SET(start, end)          ((((start) & 0x3FF) << 16) | ((end) & 0x3FF))
-
-/**  Under VI_X_SCALE   */
-/** @brief VI_X_SCALE Register: set 1/horizontal scale up factor (value is converted to 2.10 format) */
-#define VI_X_SCALE_SET(from, to)            ((1024 * (from) + (to) / 2 ) / (to))
-
-/**  Under VI_Y_SCALE   */
-/** @brief VI_Y_SCALE Register: set 1/vertical scale up factor (value is converted to 2.10 format) */
-#define VI_Y_SCALE_SET(from, to)            ((1024 * (from) + (to) / 2 ) / (to))
-
 
 /**
  * @brief Video Interface borders structure

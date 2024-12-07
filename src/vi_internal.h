@@ -101,40 +101,6 @@ typedef struct vi_config_s{
 /** @brief VI index from register */
 #define VI_TO_INDEX(reg) ((reg) - VI_REGISTERS)
 
-/** Under VI_CTRL */
-
-/** @brief VI_CTRL Register setting: enable dedither filter. */
-#define VI_DEDITHER_FILTER_ENABLE           (1<<16)
-/** @brief VI_CTRL Register setting: default value for pixel advance. */
-#define VI_PIXEL_ADVANCE_DEFAULT            (0b0011 << 12)
-/** @brief VI_CTRL Register setting: default value for pixel advance on iQue. */
-#define VI_PIXEL_ADVANCE_BBPLAYER           (0b0001 << 12)
-/** @brief VI_CTRL Register setting: mask for AA mode configuration */
-#define VI_AA_MODE_MASK                     (0b11 << 8)
-/** @brief VI_CTRL Register setting: disable AA / resamp. */
-#define VI_AA_MODE_NONE                     (0b11 << 8)
-/** @brief VI_CTRL Register setting: disable AA / enable resamp. */
-#define VI_AA_MODE_RESAMPLE                 (0b10 << 8)
-/** @brief VI_CTRL Register setting: enable AA / enable resamp, fetch pixels when needed. */
-#define VI_AA_MODE_RESAMPLE_FETCH_NEEDED    (0b01 << 8)
-/** @brief VI_CTRL Register setting: enable AA / enable resamp, fetch pixels always. */
-#define VI_AA_MODE_RESAMPLE_FETCH_ALWAYS    (0b00 << 8)
-/** @brief VI_CTRL Register setting: enable interlaced output. */
-#define VI_CTRL_SERRATE                     (1<<6)
-/** @brief VI_CTRL Register setting: enable divot filter (fixes 1 pixel holes after AA). */
-#define VI_DIVOT_ENABLE                     (1<<4)
-/** @brief VI_CTRL Register setting: enable gamma correction filter. */
-#define VI_GAMMA_ENABLE                     (1<<3)
-/** @brief VI_CTRL Register setting: enable gamma correction filter and hardware dither the least significant color bit on output. */
-#define VI_GAMMA_DITHER_ENABLE              (1<<2)
-/** @brief VI_CTRL Register setting: framebuffer source format */
-#define VI_CTRL_TYPE                        (0b11)
-/** @brief VI_CTRL Register setting: set the framebuffer source as 32-bit. */
-#define VI_CTRL_TYPE_32_BPP                 (0b11)
-/** @brief VI_CTRL Register setting: set the framebuffer source as 16-bit (5-5-5-3). */
-#define VI_CTRL_TYPE_16_BPP                 (0b10)
-/** @brief VI_CTRL Register setting: set the framebuffer source as blank (no data and no sync, TV screens will either show static or nothing). */
-#define VI_CTRL_TYPE_BLANK                  (0b00)
 
 /** Under VI_BURST     */
 /** @brief VI_BURST Register: set start of color burst in pixels from hsync. */
