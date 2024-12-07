@@ -98,6 +98,9 @@ typedef struct vi_config_s{
     uint32_t regs[VI_REGISTERS_COUNT];
 } vi_config_t;
 
+/** @brief VI index from register */
+#define VI_TO_INDEX(reg) ((reg) - VI_REGISTERS)
+
 /** Under VI_CTRL */
 
 /** @brief VI_CTRL Register setting: enable dedither filter. */
@@ -132,22 +135,6 @@ typedef struct vi_config_s{
 #define VI_CTRL_TYPE_16_BPP                 (0b10)
 /** @brief VI_CTRL Register setting: set the framebuffer source as blank (no data and no sync, TV screens will either show static or nothing). */
 #define VI_CTRL_TYPE_BLANK                  (0b00)
-
-/** Under VI_ORIGIN  */
-/** @brief VI_ORIGIN Register: set the address of a framebuffer. */
-#define VI_ORIGIN_SET(value)                ((value & 0xFFFFFF) << 0)
-
-/** Under VI_WIDTH   */
-/** @brief VI_ORIGIN Register: set the width of a framebuffer. */
-#define VI_WIDTH_SET(value)                 ((value & 0xFFF) << 0)
-
-/** Under VI_V_CURRENT  */
-/** @brief VI_V_CURRENT Register: default value for vblank begin line. */
-#define VI_V_CURRENT_VBLANK                 2
-
-/** Under VI_V_INTR    */
-/** @brief VI_V_INTR Register: set value for vertical interrupt. */
-#define VI_V_INTR_SET(value)                ((value & 0x3FF) << 0)
 
 /** Under VI_BURST     */
 /** @brief VI_BURST Register: set start of color burst in pixels from hsync. */
@@ -195,38 +182,6 @@ typedef struct vi_config_s{
 #define VI_HSYNC_WIDTH_MPAL                 57
 /** @brief VI_BURST Register: MPAL default setting. */
 #define VI_BURST_MPAL                       VI_BURST_SET(VI_BURST_START_MPAL, VI_VSYNC_WIDTH_MPAL, VI_BURST_WIDTH_MPAL, VI_HSYNC_WIDTH_MPAL)
-
-/**  Under VI_V_TOTAL */
-/** @brief VI_V_TOTAL Register: set the total number of visible and non-visible half-lines (-1). */
-#define VI_V_TOTAL_SET(vsync)               (vsync)
-
-/**  Under VI_H_TOTAL */
-/** @brief VI_H_TOTAL Register: set the total width of a line in quarter-pixel units (-1), and the 5-bit leap pattern. */
-#define VI_H_TOTAL_SET(leap_pattern, hsync)  ((((leap_pattern) & 0x1F) << 16) | ((hsync) & 0xFFF))
-
-/**  Under VI_H_TOTAL_LEAP */
-/** @brief VI_H_TOTAL_LEAP Register: set alternate scanline lengths for one scanline during vsync, leap_a and leap_b are selected based on the leap pattern in VI_H_SYNC. */
-#define VI_H_TOTAL_LEAP_SET(leap_a, leap_b)  ((((leap_a) & 0xFFF) << 16) | ((leap_b) & 0xFFF))
-
-/**  Under VI_H_VIDEO */
-/** @brief VI_H_VIDEO Register: set the horizontal start and end of the active video area, in screen pixels */
-#define VI_H_VIDEO_SET(start, end)          ((((start) & 0x3FF) << 16) | ((end) & 0x3FF))
-
-/**  Under VI_V_VIDEO */
-/** @brief VI_V_VIDEO Register: set the vertical start and end of the active video area, in half-lines */
-#define VI_V_VIDEO_SET(start, end)          ((((start) & 0x3FF) << 16) | ((end) & 0x3FF))
-
-/**  Under VI_V_BURST */
-/** @brief VI_V_BURST Register: set the start and end of color burst enable, in half-lines */
-#define VI_V_BURST_SET(start, end)          ((((start) & 0x3FF) << 16) | ((end) & 0x3FF))
-
-/**  Under VI_X_SCALE   */
-/** @brief VI_X_SCALE Register: set 1/horizontal scale up factor (value is converted to 2.10 format) */
-#define VI_X_SCALE_SET(from, to)            ((1024 * (from) + (to) / 2 ) / (to))
-
-/**  Under VI_Y_SCALE   */
-/** @brief VI_Y_SCALE Register: set 1/vertical scale up factor (value is converted to 2.10 format) */
-#define VI_Y_SCALE_SET(from, to)            ((1024 * (from) + (to) / 2 ) / (to))
 
 /**
  * @name Video Mode Register Presets
