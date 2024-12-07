@@ -245,7 +245,7 @@ static void vi_write_maybe_flush(void)
     // because the VI does not generate interrupts in that case.
     disable_interrupts();
     int first_line = *VI_V_VIDEO >> 16;
-    if ((*VI_V_CURRENT & ~1) < MAX(first_line-2, 2)) {
+    if (vi_get_scanline(NULL) < MAX(first_line-2, 2)) {
         __vblank_interrupt();
     }
     enable_interrupts();
@@ -571,8 +571,8 @@ void vi_wait_vblank(void)
         // We define the vblank as the 0->2 current line transition. We can't
         // just check if line 2 is current (VI_V_CURRENT_VBLANK) because it
         // would cause multiple subsequent calls not to wait the next vblank.
-        while ((*VI_V_CURRENT & ~1) != VI_V_CURRENT_VBLANK-2) {}
-        while ((*VI_V_CURRENT & ~1) != VI_V_CURRENT_VBLANK) {}
+        while (vi_get_scanline(NULL) != VI_V_CURRENT_VBLANK-2) {}
+        while (vi_get_scanline(NULL) != VI_V_CURRENT_VBLANK) {}
     }
 }
 
@@ -678,3 +678,5 @@ void vi_init(void)
     set_VI_interrupt(1, VI_V_CURRENT_VBLANK);
     enable_interrupts();
 }
+
+extern inline int vi_get_scanline(int *field);

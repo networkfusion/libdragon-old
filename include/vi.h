@@ -530,6 +530,31 @@ void vi_get_output_bounds(int *x0, int *y0, int *x1, int *y1);
  */
 vi_borders_t vi_get_borders(void);
 
+/**
+ * @brief Return the current scanline, and optionally the current field
+ * 
+ * This function returns the current scanline being displayed on the screen.
+ * This counter is sometimes called "half-line", it is a *even* value between
+ * 0 and 524 (or 624 on PAL), which can be doubt as two times the actual TV
+ * scanline (which is 262 or 312 on PAL).
+ * 
+ * This scanline number is in the same coordinate system as the one used by
+ * other VI registers and functions such as #vi_set_output.
+ * 
+ * If the \p field parameter is not NULL, it will be filled with the current
+ * field being displayed. The field is 0 for the first field, and 1 for the
+ * second field, in interlaced mode. In progressive mode, the field is
+ * undefined (normally it is 0, but it's not guaranteed).
+ * 
+ * @param[out] field            Field number (0 or 1) in interlaced mode (undefined in progressive mode)
+ * @return int                  Current scanline (always an even number)
+ */
+inline int vi_get_scanline(int *field) {
+    uint32_t v_current = vi_read(VI_V_CURRENT);
+    if (field) *field = v_current & 1;
+    return v_current & ~1;
+}
+
 /** @} */
 
 /**
