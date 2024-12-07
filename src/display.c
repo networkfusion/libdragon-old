@@ -407,7 +407,7 @@ void display_init( resolution_t res, bitdepth_t bit, uint32_t num_buffers, gamma
                 of almost all devices.
                 Alternatively we could have elected to shorten H_SYNC, however H_SYNC is expected
                 to be less tolerant than V_SYNC so we opt to leave it alone at the nominal value. */
-        vi_write_safe(VI_V_TOTAL, VI_V_TOTAL_SET(525 - 6 - serrate));
+        vi_write_safe(VI_V_TOTAL, VI_V_TOTAL_SET(526 - 6 - serrate));
         vi_write_safe(VI_V_VIDEO, (serrate) ? vi_ntsc_i.regs[VI_TO_INDEX(VI_V_VIDEO)] : vi_ntsc_p.regs[VI_TO_INDEX(VI_V_VIDEO)]);
     }
 

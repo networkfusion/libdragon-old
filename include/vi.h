@@ -167,16 +167,16 @@ typedef struct surface_s surface_t;
 #define VI_V_INTR_SET(value)                ((value & 0x3FF) << 0)
 
 /**  Under VI_V_TOTAL */
-/** @brief VI_V_TOTAL Register: set the total number of visible and non-visible half-lines (-1). */
-#define VI_V_TOTAL_SET(vsync)               (vsync)
+/** @brief VI_V_TOTAL Register: set the total number of visible and non-visible half-lines. */
+#define VI_V_TOTAL_SET(vsync)               ((vsync)-1)
 
 /**  Under VI_H_TOTAL */
 /** @brief VI_H_TOTAL Register: set the total width of a line in quarter-pixel units (-1), and the 5-bit leap pattern. */
-#define VI_H_TOTAL_SET(leap_pattern, hsync)  ((((leap_pattern) & 0x1F) << 16) | ((hsync) & 0xFFF))
+#define VI_H_TOTAL_SET(leap_pattern, hsync)  ((((leap_pattern) & 0x1F) << 16) | ((int)((hsync)*4-1) & 0xFFF))
 
 /**  Under VI_H_TOTAL_LEAP */
 /** @brief VI_H_TOTAL_LEAP Register: set alternate scanline lengths for one scanline during vsync, leap_a and leap_b are selected based on the leap pattern in VI_H_SYNC. */
-#define VI_H_TOTAL_LEAP_SET(leap_a, leap_b)  ((((leap_a) & 0xFFF) << 16) | ((leap_b) & 0xFFF))
+#define VI_H_TOTAL_LEAP_SET(leap_a, leap_b)  ((((int)((leap_a)*4-1) & 0xFFF) << 16) | ((int)((leap_b)*4-1) & 0xFFF))
 
 /**  Under VI_H_VIDEO */
 /** @brief VI_H_VIDEO Register: set the horizontal start and end of the active video area, in screen pixels */
