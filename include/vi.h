@@ -8,7 +8,40 @@
  * interface, plus automatic memory management of multiple framebuffers,
  * FPS utilities, and much more.
  * 
- * ## Framebuffer resizing and video display size
+ * ## Register read/write access
+ * 
+ * This module defines a set of macros to directly access the VI registers,
+ * including macros to compose different fields in the registers. While read
+ * access is straightforward, write access is generally more complicated
+ * because VI is quite picky about the timing of register writes: most registers
+ * can only be written during vblank. 
+ * 
+ * To help with that, this module provides a set of functions to write registers
+ * that will be applied at the next vblank: #vi_write and #vi_write_masked.
+ * To batch multiple register writes, you can use #vi_write_begin and #vi_write_end,
+ * so that you can be sure that all the registers will be written atomically
+ * at the next vblank.
+ * 
+ * #vi_read can be used to read the current state of a register, including any
+ * pending changes (applied via #vi_write) that were not yet applied.
+ * 
+ * ## Higher level APIs
+ * 
+ * This module also includes some higher level APIs to configure the VI:
+ * 
+ * * #vi_show is a simple function to just show a #surface_t to the screen.
+ * * #vi_set_origin, #vi_set_xscale and #vi_set_yscale are more granular
+ *   functions to configure the framebuffer.
+ * * #vi_set_aa_mode, #vi_set_divot, #vi_set_dedither and #vi_set_gamma
+ *   are functions to configure various filters and modes of the VI.
+ * * #vi_set_interlaced is a function to turn on and off interlaced display mode.
+ * * #vi_set_output defines the active display area on the screen.
+ *   #vi_get_output_bounds will provide the limits for it, while
+ *   #vi_move_output and #vi_scroll_output can be used to just pan the display.
+ * * #vi_set_borders is an alternative to #vi_set_output, that specifies the
+ *   display area in terms of borders (with respect to the default one).
+ * 
+ * ## Active display area and framebuffer scaling
  * 
  * VI has a powerful resampling engine: the framebuffer is not displayed as-is
  * on TV, but it is actually resampled (scaled, stretched), optionally with
@@ -50,19 +83,27 @@
  * 
  * While resampling the framebuffer into the display output, the VI can use either
  * bilinear filtering or simple nearest sampling (duplicating or dropping pixels).
- * See #filter_options_t for more information on configuring
- * the VI image filters.
+ * See #vi_aa_mode_t for more information on configuring the VI image filters.
  * 
  * The 640x480 virtual display output can be fully viewed on emulators and on
  * modern screens (via grabbers, converters, etc.). When displaying on old
  * CRTs though, part of the display will be hidden because of the overscan.
- * To account for that, it is possible to reduce the 640x480 display output
- * by adding black borders. For instance, if you specify 12 dots of borders
- * on all the four edges, you will get a 616x456 display output, plus
- * the requested 12 dots of borders on all sides; the actual display output
- * will thus be smaller, and possibly get fully out of overscan. The value
- * #VI_CRT_MARGIN is a good default you can use for overscan compensation on
- * most CRT TVs.
+ * To account for this, you can configure a smaller display output via two
+ * different APIs which are just two ways to express the same concept:
+ * 
+ *  * #vi_set_borders: this function configures the display output on the screen
+ *    by specifying the size of the borders, with respect the default 640x480
+ *    display output.
+ *  * #vi_set_output: this function configures the display output on the screen
+ *    by specifying the top-left and bottom-right corners of the display area,
+ *    as absolute coordinates in the VI coordinate system.
+ * 
+ * For instance, if you specify 12 dots of borders on all the four edges, you
+ * will get a 616x456 display output (on NTSC), plus the requested 12 dots of
+ * borders on all sides; The same effect can be obtained by specifying the
+ * display output area as (120, 47) - (736, 503) with #vi_set_output. This
+ * is because the default display area on NTSC is (108, 35) - (748, 515)
+ * (which can be found out via #vi_get_output).
  * 
  * Notice that adding borders also affect the aspect ratio of the display output;
  * for instance, in the above example, the 616x456 display output is not
