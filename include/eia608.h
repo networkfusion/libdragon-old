@@ -60,6 +60,7 @@ typedef struct {
     eia608_channel_t cc;         ///< Caption channel to transmit on (default: EIA608_CC1)
     int row;                     ///< The row to display the caption on, range 1-15 (default: 11)
     bool underline;              ///< Enable underline for the caption (default: false)
+    bool hidden;                 ///< Prepare the caption but don't display it (default: false)
 } eia608_captionparms_t;
 
 /** @brief Calculate EIA608 parity for 7-bit value */
@@ -225,6 +226,20 @@ void eia608_write_ctrl_raw(eia608_ctrl_t ctrl);
  * @see Wikipedia article on EIA-608: https://en.wikipedia.org/wiki/EIA-608
  */
 void eia608_caption(const char *utf8_str, float duration_secs, eia608_captionparms_t *parms);
+
+/**
+ * @brief Show a caption that was previously prepared with #eia608_caption
+ * 
+ * By default, #eia608_caption will prepare the caption and display it right
+ * away. Transmitting a caption can take a non negligible amount of time
+ * (it is about 1 second every 60 characters). If you need perfect syncing,
+ * you can first prepare the caption and keep it hidden, by calling
+ * #eia608_caption with the \p hidden parameter set to true in \p parms. 
+ * Then, when you are ready to display the caption, call this function.
+ * 
+ * @param cc                Channel in which the caption was prepared.
+ */
+void eia608_caption_show(eia608_channel_t cc);
 
 #ifdef __cplusplus
 }

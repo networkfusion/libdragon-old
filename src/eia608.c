@@ -528,5 +528,11 @@ void eia608_caption(const char *utf8_str, float duration_secs, eia608_captionpar
     }
 
     // Emit end caption command (swap buffers)
+    if (!parms->hidden)
+        eia608_caption_show(cc);
+}
+
+void eia608_caption_show(eia608_channel_t cc)
+{
     eia608_write_ctrl_raw(cc == EIA608_CC1 ? EIA608_CC1_EOC : EIA608_CC2_EOC);
 }
