@@ -443,6 +443,23 @@ void vi_wait_vblank(void);
  */
 void vi_debug_dump(int verbose);
 
+/**
+ * @brief Stabilize the value of a VI register by rewriting it at vblank
+ * 
+ * @note This is an advanced function, which is normally not needed.
+ * 
+ * This function forces a certain register to be rewritten with its programmed
+ * value (last value written via #vi_write functions) at every vblank.
+ * 
+ * This can be useful in cases where you are playing with a certain register
+ * mid-frame, and you want to ensure that the original value is reset at the
+ * beginning of each frame.
+ * 
+ * @param reg           Register to stabilize
+ * @param enable        Whether to enable or disable the stabilization
+ */
+void vi_stabilize(volatile uint32_t *reg, bool enable);
+
 /** @} */
 
 /**

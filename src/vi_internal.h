@@ -411,6 +411,7 @@ static inline void vi_set_blank_image()
     vi_write_safe(VI_H_VIDEO, 0);
 }
 
+void vi_set_line_interrupt(int line, void (*handler)(void));
 
 #ifdef __cplusplus
 extern "C" {
