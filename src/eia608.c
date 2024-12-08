@@ -16,9 +16,6 @@
 #include <assert.h>
 #include <string.h>
 
-#define EIA608_NOP  0x8080          ///< NOP filler (already including parity)
-#define EIA608_EDM  0x942C          ///< Erase Display Memory 
-
 #define SIG_ON      0x808080FF      ///< IRE 50 (50% intensity)
 #define SIG_OFF     0x00000000      ///< IRE 0
 
@@ -76,8 +73,9 @@ static void linebuffer_init(surface_t *lb)
 static void linebuffer_write(surface_t *lb, uint16_t data)
 {
     uint32_t *buffer = lb->buffer;
-    buffer += SIGW_BLANK * SIGW_SCALE;   // skip the blank part
+    buffer += SIGW_BLANK;                // skip the blank part
     buffer += SIGW_LEADIN * SIGW_SCALE;  // skip the leadin part
+    data = (data << 8) | (data >> 8);
     for (int i=0; i<16; i++) {
         for (int j=0; j<SIGW_BIT; j++)
             buffer = linebuffer_write_bit(buffer, data & 1);
@@ -132,20 +130,28 @@ static void recalc_parms(void)
 
 static void __eia608_interrupt(void)
 {
-    // Fetch the data from the ring buffer (or the NOP filler if empty)
-    uint16_t data;
+    static int framecounter = 0; ++framecounter;
 
-    if (force_clear_timer && --force_clear_timer == 0)
-        data = EIA608_EDM;
-    else if (rb_rpos == rb_wpos) {
-        data = EIA608_NOP;
-    } else {
-        data = ring_buffer[rb_rpos];
-        rb_rpos = (rb_rpos + 1) % RING_BUFFER_SIZE;
+    // We need to update the linebuffer at 30 Hz, so every
+    // other frame. Even if the display is interlaced, it doesn't
+    // really matter *which* field we do the update, as we emit
+    // the signal on both anyway.
+    if (framecounter & 1) {
+        // Fetch the data from the ring buffer (or the NOP filler if empty)
+        uint16_t data;
+
+        if (force_clear_timer && --force_clear_timer < 2) {
+            data = EIA608_CC1_EDM;
+        } else if (rb_rpos == rb_wpos) {
+            data = EIA608_NOP;
+        } else {
+            data = ring_buffer[rb_rpos];
+            rb_rpos = (rb_rpos + 1) % RING_BUFFER_SIZE;
+        }
+
+        // Draw the data into the linebuffer
+        linebuffer_write(&linebuffer, data);
     }
-
-    // Draw the data into the linebuffer
-    linebuffer_write(&linebuffer, data);
     
     // The VI should still be drawing the line *before* the one that we want
     // to draw on. If we're not there, it means that the interrupt was late,
@@ -166,8 +172,8 @@ static void __eia608_interrupt(void)
     // Wait for the line to match the one we're expecting
     while ((*VI_V_CURRENT|1) != sigparms.v_line_start) {}
 
-    // We are not in hblank. Quickly switch VI configuration to draw the
-    // linebuffer
+    // We are now in hblank. Quickly switch VI configuration to draw the
+    // linebuffer.
     *VI_ORIGIN = PhysicalAddr(linebuffer.buffer);
     *VI_WIDTH = linebuffer.width;
     *VI_CTRL = sigparms.reg_ctrl;
@@ -234,6 +240,7 @@ static uint8_t odd_parity(uint8_t value)
 
 bool eia608_write_raw(uint16_t data, bool calc_parity)
 {
+    debugf("EIA-608: %04X\n", data);
     int next = (rb_wpos + 1) % RING_BUFFER_SIZE;
     if (next == rb_rpos) 
         return false;
@@ -241,7 +248,7 @@ bool eia608_write_raw(uint16_t data, bool calc_parity)
     if (calc_parity)
         data = odd_parity(data) | (odd_parity(data >> 8) << 8);
 
-    ring_buffer[rb_wpos] = (data >> 8) | (data << 8);
+    ring_buffer[rb_wpos] = data;
     rb_wpos = next;
     return true;
 }
@@ -422,7 +429,7 @@ static uint32_t eia608_encode_char(const char **utf8_str)
     return 0;
 }
 
-void eia608_caption(const char *utf8_str, float duration_secs, eia608_captionparms_t *parms)
+void eia608_caption_prepare(eia608_channel_t cc, const char *utf8_str, eia608_captionparms_t *parms)
 {
     // EIA-608 POP-ON mode can only hold up to three lines of 32 characters each
     enum { MAX_ROWS = 4 };
@@ -430,7 +437,6 @@ void eia608_caption(const char *utf8_str, float duration_secs, eia608_captionpar
     eia608_captionparms_t _default = {0};
     if (parms == NULL) parms = &_default;
 
-    eia608_channel_t cc = parms->cc ? parms->cc : EIA608_CC1;
     int first_row = parms->row ? parms->row : 11;
 
     uint32_t buffer[32*MAX_ROWS+8];
@@ -441,8 +447,8 @@ void eia608_caption(const char *utf8_str, float duration_secs, eia608_captionpar
 
     // Convert the input string from UTF-8 into EIA-608 16-bit characters.
     for (int i = 0; i < sizeof(buffer)/2; i++) {
-        if (*utf8_str == 0) break;  
-        uint16_t ch = eia608_encode_char(&utf8_str);
+        if (*utf8_str == 0) break;
+        uint32_t ch = eia608_encode_char(&utf8_str);
         if (ch > 0x100 && cc == EIA608_CC2) ch |= 0x8000;
         if (ch == 0) continue;
         buffer[buf_len++] = ch;
@@ -468,6 +474,13 @@ void eia608_caption(const char *utf8_str, float duration_secs, eia608_captionpar
                 wrap = ch;
         }
 
+        // Empty line, just skip it (or stop if we're done)
+        if (ch == 0) {
+            if (buf_idx >= buf_len) break;
+            buf_idx++;
+            continue;
+        }
+
         // We need to wrap if we reached 32 chars and there are more
         if (ch == 32 && buf_idx+ch < buf_len)
             ch = wrap;
@@ -486,7 +499,7 @@ void eia608_caption(const char *utf8_str, float duration_secs, eia608_captionpar
             // Split the token into 1, 2, or 1+2 byte values
             uint16_t single = 0, pair = 0;
             if (token >> 16) {
-                single = token >> 8;
+                single = token >> 16;
                 pair = token & 0xffff;
             } else if (token >> 8) {
                 pair = token;
@@ -524,15 +537,14 @@ void eia608_caption(const char *utf8_str, float duration_secs, eia608_captionpar
 
         // Move to the next line
         first_row++;
-        utf8_str += wrap+1;
-    }
 
-    // Emit end caption command (swap buffers)
-    if (!parms->hidden)
-        eia608_caption_show(cc);
+        // Skip wrapping character
+        buf_idx++;
+    }
 }
 
-void eia608_caption_show(eia608_channel_t cc)
+void eia608_caption_show(eia608_channel_t cc, float duration_secs)
 {
     eia608_write_ctrl_raw(cc == EIA608_CC1 ? EIA608_CC1_EOC : EIA608_CC2_EOC);
+    force_clear_timer = duration_secs * 30;
 }

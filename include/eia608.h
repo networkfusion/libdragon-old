@@ -57,14 +57,12 @@ typedef enum {
 
 /** @brief Caption display parameters */
 typedef struct {
-    eia608_channel_t cc;         ///< Caption channel to transmit on (default: EIA608_CC1)
     int row;                     ///< The row to display the caption on, range 1-15 (default: 11)
     bool underline;              ///< Enable underline for the caption (default: false)
-    bool hidden;                 ///< Prepare the caption but don't display it (default: false)
 } eia608_captionparms_t;
 
 /** @brief Calculate EIA608 parity for 7-bit value */
-#define EIA608_PARITY(b)       (((1 ^ ((b)>>0) ^ ((b)>>1) ^ ((b)>>2) ^ ((b)>>3) ^ ((b)>>4) ^ ((b)>>5) ^ ((b)>>6)) & 1) << 7)
+#define EIA608_PARITY(b)       ((((1 ^ ((b)>>0) ^ ((b)>>1) ^ ((b)>>2) ^ ((b)>>3) ^ ((b)>>4) ^ ((b)>>5) ^ ((b)>>6)) & 1) << 7) | (b))
 
 ///@cond
 #define EIA608_CTRL(c)         ((EIA608_PARITY((c) & 0xFF)) | (EIA608_PARITY((c) >> 8) << 8))
@@ -198,8 +196,15 @@ void eia608_write_ctrl_raw(eia608_ctrl_t ctrl);
  * @brief Emit a caption, with automatic positioning on the screen.
  * 
  * EIA-608 captions are divided into maximum 4 lines of 32 characters each.
- * This function will automatically word-wrap the caption into the lines if
+ * This function will automatically word-wrap the caption into multiple lines if
  * necessary, but also respects any embedded newlines in the caption.
+ * 
+ * The caption will not be displayed but just prepared. You need
+ * to call #eia608_caption_show to actually display it. This allows for perfect
+ * syncing as preparing a caption can take a non trivial amount of time
+ * (about 1 second every 60 characters), so to avoid avoid the captions always
+ * a bit late, you can prepare the next sentence in advance and then show it
+ * when needed.
  * 
  * By default, the caption will be displayed centered, at the bottom of the
  * screen, using white on black colors. You can change these parameters by
@@ -218,28 +223,25 @@ void eia608_write_ctrl_raw(eia608_ctrl_t ctrl);
  *       this function to display a caption before the previous one has been
  *       displayed, the new caption will replace the old one.
  * 
+ * @param cc                Channel in which the caption must be prepared.
  * @param utf8_str          The UTF-8 string to display
- * @param duration_secs     The duration in seconds to display the caption
  * @param parms             Optiona parameters to control the caption
  *                          (use NULL for default values)
  * 
  * @see Wikipedia article on EIA-608: https://en.wikipedia.org/wiki/EIA-608
  */
-void eia608_caption(const char *utf8_str, float duration_secs, eia608_captionparms_t *parms);
+void eia608_caption_prepare(eia608_channel_t cc, const char *utf8_str, eia608_captionparms_t *parms);
 
 /**
  * @brief Show a caption that was previously prepared with #eia608_caption
  * 
- * By default, #eia608_caption will prepare the caption and display it right
- * away. Transmitting a caption can take a non negligible amount of time
- * (it is about 1 second every 60 characters). If you need perfect syncing,
- * you can first prepare the caption and keep it hidden, by calling
- * #eia608_caption with the \p hidden parameter set to true in \p parms. 
- * Then, when you are ready to display the caption, call this function.
+ * This shows a caption that was prepared by #eia608_caption_prepare. The caption
+ * will be displayed on the screen for the specified duration, and then hidden.
  * 
  * @param cc                Channel in which the caption was prepared.
+ * @param duration_secs     The duration in seconds to display the caption
  */
-void eia608_caption_show(eia608_channel_t cc);
+void eia608_caption_show(eia608_channel_t cc, float duration_secs);
 
 #ifdef __cplusplus
 }
