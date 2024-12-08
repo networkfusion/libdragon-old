@@ -598,7 +598,7 @@ vi_borders_t vi_get_borders(void);
  * @return int                  Current scanline (always an even number)
  */
 inline int vi_get_scanline(int *field) {
-    uint32_t v_current = vi_read(VI_V_CURRENT);
+    uint32_t v_current = *VI_V_CURRENT;
     if (field) *field = v_current & 1;
     return v_current & ~1;
 }
