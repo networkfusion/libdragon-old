@@ -76,7 +76,7 @@ typedef struct {
 
 line_irqs_t line_irqs[16] = {0};       ///< Line interrupt callbacks
 
-static vi_config_t cfg;                ///< Current VI configuration
+uint32_t __vi_cfg[VI_REGISTERS_COUNT]; ///< Current VI configuration
 static const vi_preset_t *preset;      ///< Active TV preset
 static uint16_t cfg_pending;           ///< Pending register changes (1 bit per each VI register)
 static uint16_t cfg_raster;            ///< Raster register changes (1 bit per each VI register)
@@ -160,7 +160,7 @@ static void __vblank_interrupt(void)
     if (UNLIKELY(writeregs)) {
         for (int idx=0; writeregs; idx++) {
             if (writeregs & (1 << idx)) {
-                VI_REGISTERS[idx] = cfg.regs[idx];
+                VI_REGISTERS[idx] = __vi_cfg[idx];
                 writeregs ^= (1 << idx);
             }
         }
@@ -223,10 +223,6 @@ void __vi_interrupt(void)
     handler();
 }
 
-uint32_t vi_read(volatile uint32_t *reg) {
-    return cfg.regs[VI_TO_INDEX(reg)];
-}
-
 void vi_write_begin(void)
 {
     cfg_refcount++;
@@ -263,7 +259,7 @@ static void vi_write_idx_masked(int reg_idx, uint32_t wmask, uint32_t value)
     assert(reg_idx >= 0 && reg_idx < VI_REGISTERS_COUNT);
     assert((value & ~wmask) == 0);
     disable_interrupts();
-    cfg.regs[reg_idx] = (cfg.regs[reg_idx] & ~wmask) | value;
+    __vi_cfg[reg_idx] = (__vi_cfg[reg_idx] & ~wmask) | value;
     cfg_pending |= 1 << reg_idx;
     vi_write_maybe_flush();
     enable_interrupts();
@@ -637,7 +633,7 @@ void vi_init(void)
     // Initialize the preset to the current TV type (progressive mode),
     // and set the pending mask to all registers, so that the whole
     // VI will be programmed at next vblank.
-    memset(&cfg, 0, sizeof(cfg));
+    memset(&__vi_cfg, 0, sizeof(__vi_cfg));
     cfg_pending = cfg_raster = 0;
     cfg_refcount = 0;
     pending_blank = 0;
@@ -680,3 +676,4 @@ void vi_init(void)
 }
 
 extern inline int vi_get_scanline(int *field);
+extern inline uint32_t vi_read(volatile uint32_t *reg);

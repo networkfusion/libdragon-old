@@ -239,6 +239,11 @@ typedef struct surface_s surface_t;
 /** @brief VI_Y_SCALE Register: set 1/vertical scale up factor (value is converted to 2.10 format) */
 #define VI_Y_SCALE_SET(from, to)            ((1024 * (from) + (to) / 2 ) / (to))
 
+///@cond
+// Private symbols, do not use
+extern uint32_t __vi_cfg[VI_REGISTERS_COUNT];
+///@endcond
+
 /**
  * @brief Video Interface borders structure
  *
@@ -369,7 +374,9 @@ void vi_init(void);
  * @param reg               Register to read
  * @return uint32_t         Current value of the register (or pending value if any)
  */
-uint32_t vi_read(volatile uint32_t *reg);
+inline uint32_t vi_read(volatile uint32_t *reg) {
+    return __vi_cfg[reg - VI_REGISTERS];
+}
 
 /**
  * @brief Partially write a VI register at next vblank
