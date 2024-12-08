@@ -83,6 +83,7 @@ static uint16_t cfg_raster;            ///< Raster register changes (1 bit per e
 static volatile int cfg_refcount;      ///< Number of active write transactions
 static bool pending_blank;             ///< True if blanking was requested
 static int cur_line_irq;               ///< Current line IRQ index    
+static int interlacing_parms[2];       ///< Interlaced parameters (offsets for ORIGIN, YSCALE)
 
 static void __vi_validate_config(void)
 {
@@ -158,10 +159,11 @@ static void __vblank_interrupt(void)
     }
     
     if (UNLIKELY(writeregs)) {
-        for (int idx=0; writeregs; idx++) {
-            if (writeregs & (1 << idx)) {
+        uint32_t to_write = writeregs;
+        for (int idx=0; to_write; idx++) {
+            if (to_write & (1 << idx)) {
                 VI_REGISTERS[idx] = __vi_cfg[idx];
-                writeregs ^= (1 << idx);
+                to_write ^= (1 << idx);
             }
         }
     }
@@ -176,10 +178,12 @@ static void __vblank_interrupt(void)
     if (UNLIKELY(ctrl & VI_CTRL_SERRATE)) {
         int field = *VI_V_CURRENT & 1;
 
-        if (field == 0) {
+        // See if we need to recalculate the interlacing parameters
+        if (UNLIKELY(writeregs & (1 << VI_TO_INDEX(VI_Y_SCALE) | 1 << VI_TO_INDEX(VI_WIDTH) | 1 << VI_TO_INDEX(VI_CTRL)))) {
             uint32_t Y_SCALE = vi_read(VI_Y_SCALE);
             int yoffset = (Y_SCALE >> 16) & 0x3FF;
             int yscale = Y_SCALE & 0xFFFF;
+            int origin_offset = 0;
             
             // Serration moves the odd field (field==0) by 1/2 line down. We
             // want to counter-adjust this movement by moving the field up.
@@ -193,15 +197,25 @@ static void __vblank_interrupt(void)
             if (yoffset > 0x3FF) {
                 int num_lines = yoffset >> 10;
                 int bpp_shift = (vi_read(VI_CTRL) & VI_CTRL_TYPE) - 1;
-                *VI_ORIGIN += (vi_read(VI_WIDTH) * num_lines) << bpp_shift;
+                origin_offset = (vi_read(VI_WIDTH) * num_lines) << bpp_shift;
                 yoffset &= 0x3FF;
             }
 
-            *VI_Y_SCALE = (yscale & 0xFFFF) | (yoffset << 16);
-        } else {
-            *VI_Y_SCALE = vi_read(VI_Y_SCALE);
-            *VI_ORIGIN = vi_read(VI_ORIGIN);
+            int new_yscale = (yscale & 0xFFFF) | (yoffset << 16);
+            interlacing_parms[0] = origin_offset;
+            interlacing_parms[1] = new_yscale - yscale;
         }
+
+        // Apply interlacing adjustments during field 0. The parameters
+        // were already calculated so we just need to adjust VI_ORIGIN / VI_YSCALE
+        uint32_t origin = vi_read(VI_ORIGIN);
+        uint32_t yscale = vi_read(VI_Y_SCALE);
+        if (field == 0) {
+            origin += interlacing_parms[0];
+            yscale += interlacing_parms[1];
+        } 
+        *VI_ORIGIN = origin;
+        *VI_Y_SCALE = yscale;
 
         // Workaround for a PAL-M VI bug on old boards like NUS-CPU-02. 
         // On those consoles, V_BURST must be changed every field,
@@ -209,7 +223,7 @@ static void __vblank_interrupt(void)
         // It is probably a bug in old revisions of the VI chip,
         // since the problem doesn't exist on newer boards.
         if (UNLIKELY(get_tv_type() == TV_MPAL)) {
-            *VI_V_BURST ^= 0x000b0202 ^ 0x000e0204;
+            *VI_V_BURST ^= VI_V_BURST_SET(11, 514) ^ VI_V_BURST_SET(14, 516);
         }
     }
 }
