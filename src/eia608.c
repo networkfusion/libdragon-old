@@ -9,6 +9,7 @@
 #include "vi.h"
 #include "vi_internal.h"
 #include "n64sys.h"
+#include "n64types.h"
 #include "debug.h"
 #include "utils.h"
 #include <stddef.h>
@@ -16,8 +17,8 @@
 #include <assert.h>
 #include <string.h>
 
-#define SIG_ON      0x808080FF      ///< IRE 50 (50% intensity)
-#define SIG_OFF     0x00000000      ///< IRE 0
+#define SIG_ON      0x8421            ///< IRE 50 (50% intensity RGBA16)
+#define SIG_OFF     0x0000            ///< IRE 0
 
 #define SIGW_SCALE    4               ///< Scale factor for the signal wrt linebuffer pixels
 #define SIGW_BLANK    7               ///< Blank before/after the actual eia608 signal
@@ -43,24 +44,40 @@ static struct {
     int v_line_end;             ///< Lines to draw
 } sigparms;
 
-static uint32_t* linebuffer_write_bit(uint32_t* buffer, bool on)
+static uint16_t* linebuffer_write_bits(uint16_t* buffer, bool on, int nbits)
 {
-    uint32_t val = on ? SIG_ON : SIG_OFF;
-    for (int i=0; i<SIGW_SCALE; i++)
-        *buffer++ = val;
+    uint16_t val16 = on ? SIG_ON : SIG_OFF;
+    uint32_t val32 = (val16 << 16) | val16;
+    uint64_t val64 = (uint64_t)val32 << 32 | val32;
+    int size = SIGW_SCALE * nbits;
+    while (size >= 8) {
+        *(u_uint64_t*)buffer = val64;
+        buffer += 8;
+        size -= 8;
+    }
+    if (size >= 4) {
+        *(u_uint32_t*)buffer = val32;
+        buffer += 4;
+        size -= 4;
+    }
+    if (size >= 2) {
+        *(uint16_t*)buffer = val16;
+        buffer += 2;
+        size -= 2;
+    }
     return buffer;
 }
 
 static void linebuffer_init(surface_t *lb)
 {
-    uint32_t *buffer = lb->buffer;
+    uint16_t *buffer = lb->buffer;
 
     for (int i=0; i<SIGW_BLANK; i++)
         *buffer++ = SIG_OFF;
     
     int clock = 0x61555;
     for (int i=0; i<SIGW_LEADIN; i++) {
-        buffer = linebuffer_write_bit(buffer, clock & 1);
+        buffer = linebuffer_write_bits(buffer, clock & 1, 1);
         clock >>= 1;
     }
 
@@ -72,13 +89,12 @@ static void linebuffer_init(surface_t *lb)
 
 static void linebuffer_write(surface_t *lb, uint16_t data)
 {
-    uint32_t *buffer = lb->buffer;
+    uint16_t *buffer = lb->buffer;
     buffer += SIGW_BLANK;                // skip the blank part
     buffer += SIGW_LEADIN * SIGW_SCALE;  // skip the leadin part
     data = (data << 8) | (data >> 8);
     for (int i=0; i<16; i++) {
-        for (int j=0; j<SIGW_BIT; j++)
-            buffer = linebuffer_write_bit(buffer, data & 1);
+        buffer = linebuffer_write_bits(buffer, data & 1, SIGW_BIT);
         data >>= 1;
     }
 }
@@ -90,8 +106,10 @@ static void recalc_parms(void)
     float xscale = (SIGW_BIT * SIGW_SCALE) / (eia_databit_us / ntsc_pixel_us);
     uint32_t xscale_fx = (uint32_t)(xscale * 1024.0f + 0.5f);
 
-    uint32_t ctrl = vi_read(VI_CTRL);
-    ctrl = (ctrl & ~VI_CTRL_TYPE) | VI_CTRL_TYPE_32_BPP;
+    uint32_t ctrl = 0;
+    ctrl |= !sys_bbplayer() ? VI_PIXEL_ADVANCE_DEFAULT : VI_PIXEL_ADVANCE_BBPLAYER;
+    ctrl |= VI_CTRL_TYPE_16_BPP;   // 16-bit color
+    ctrl |= VI_AA_MODE_RESAMPLE;   // resample AA mode
 
     bool interlaced = ctrl & VI_CTRL_SERRATE;
 
@@ -204,7 +222,7 @@ void eia608_init(void)
     rb_rpos = rb_wpos = 0;
 
     // Allocate and initialize the linebuffer
-    linebuffer = surface_alloc(FMT_RGBA32, SIGW_LEN, 1);
+    linebuffer = surface_alloc(FMT_RGBA16, SIGW_LEN, 1);
     linebuffer_init(&linebuffer);
 }
 
