@@ -74,15 +74,18 @@ typedef struct {
     void (*handler)(void);             ///< Callback function
 } line_irqs_t;
 
-line_irqs_t line_irqs[16] = {0};       ///< Line interrupt callbacks
+#define MAX_LINE_IRQS  16                       ///< Maximum number of line interrupts
+line_irqs_t line_irqs[MAX_LINE_IRQS] = {0};     ///< Line interrupt callbacks
+line_irqs_t new_line_irqs[MAX_LINE_IRQS] = {0}; ///< New line interrupt callbacks
 
 uint32_t __vi_cfg[VI_REGISTERS_COUNT]; ///< Current VI configuration
 static const vi_preset_t *preset;      ///< Active TV preset
 static uint16_t cfg_pending;           ///< Pending register changes (1 bit per each VI register)
 static uint16_t cfg_raster;            ///< Raster register changes (1 bit per each VI register)
+static bool cfg_pending_lineirqs;      ///< True if line IRQs have been changed
 static volatile int cfg_refcount;      ///< Number of active write transactions
 static bool pending_blank;             ///< True if blanking was requested
-static int cur_line_irq;               ///< Current line IRQ index    
+static line_irqs_t *cur_line_irq;      ///< Current line IRQ pointer
 static int interlacing_parms[2];       ///< Interlaced parameters (offsets for ORIGIN, YSCALE)
 
 static void __vi_validate_config(void)
@@ -203,7 +206,7 @@ static void __vblank_interrupt(void)
 
             int new_yscale = (yscale & 0xFFFF) | (yoffset << 16);
             interlacing_parms[0] = origin_offset;
-            interlacing_parms[1] = new_yscale - yscale;
+            interlacing_parms[1] = new_yscale - Y_SCALE;
         }
 
         // Apply interlacing adjustments during field 0. The parameters
@@ -230,10 +233,21 @@ static void __vblank_interrupt(void)
 
 void __vi_interrupt(void)
 {
-    void (*handler)(void) = line_irqs[cur_line_irq++].handler;
-    if (line_irqs[cur_line_irq].line == 0)
-        cur_line_irq = 0;
-    *VI_V_INTR = line_irqs[cur_line_irq].line;
+    // Check if there are pending line interrupts to install on this frame.
+    // We do this only on the beginning of a frame, and only if cfg_refcount
+    // is 0, so that we are synchronized with other VI changes and we respect
+    // vi_write_begin().
+    if (UNLIKELY(cfg_pending_lineirqs) && cfg_refcount == 0) {
+        for (int i=0; i<MAX_LINE_IRQS; i++)
+            line_irqs[i] = new_line_irqs[i];
+        cfg_pending_lineirqs = false;
+    }
+
+    void (*handler)(void) = cur_line_irq->handler;
+    cur_line_irq++;
+    if (cur_line_irq->line == 0)
+        cur_line_irq = line_irqs;
+    *VI_V_INTR = cur_line_irq->line;
     handler();
 }
 
@@ -254,10 +268,8 @@ static void vi_write_maybe_flush(void)
     // it is mandatory when VI is disabled (VI_CTRL=0, which makes VI_V_CURRENT=0),
     // because the VI does not generate interrupts in that case.
     disable_interrupts();
-    int first_line = *VI_V_VIDEO >> 16;
-    if (vi_get_scanline(NULL) < MAX(first_line-2, 2)) {
+    if ((*VI_CTRL & VI_CTRL_TYPE) == VI_CTRL_TYPE_BLANK)
         __vblank_interrupt();
-    }
     enable_interrupts();
 }
 
@@ -625,16 +637,47 @@ void vi_set_line_interrupt(int line, void (*handler)(void))
     // *before* the specified one, in the odd field. This is often surprising
     // (especially across vsync), so let's just force it to 1.
     line |= 1;
+    //line &= ~1; // FIXME: this makes things a bit more stable on ares until we fix it
 
-    // Insert the new line interrupt in the list, sorted by line number,
-    // moving the rest of the list to make space.
+    debugf("VI: Setting line interrupt at line %d\n", line);
+
+    // Insert the new line interrupt at the end of the list of line interrupts,
+    // as a negative line number. It will be processed at the beginning of the
+    // next frame.
     disable_interrupts();
-    int idx = 0;
-    while (line_irqs[idx].line < line && line_irqs[idx].line != 0) idx++;
-    for (int i=15; i>idx; i--)
-        line_irqs[i] = line_irqs[i-1];
-    line_irqs[idx].line = line;
-    line_irqs[idx].handler = handler;
+    if (!cfg_pending_lineirqs) {
+        cfg_pending_lineirqs = true;
+        for (int i=0; i<MAX_LINE_IRQS; i++)
+            new_line_irqs[i] = line_irqs[i];
+    }
+
+    if (handler) {
+        // Insert the new line interrupt into the interrupt list, and sort it by line number.
+        int i;
+        for (i=0; i<MAX_LINE_IRQS; i++) {
+            if (new_line_irqs[i].line == 0 || new_line_irqs[i].line > line)
+                break;
+        }
+        assertf(i < MAX_LINE_IRQS, "Too many line interrupts");
+        for (int j=MAX_LINE_IRQS-1; j>i; j--)
+            new_line_irqs[j] = new_line_irqs[j-1];
+        new_line_irqs[i].line = line;
+        new_line_irqs[i].handler = handler;
+    } else {
+        // Remove the line interrupt from the interrupt list.
+        bool removed = false;
+        for (int i=0; i<MAX_LINE_IRQS; i++) {
+            if (new_line_irqs[i].line == line) {
+                for (int j=i; j<MAX_LINE_IRQS-1; j++)
+                    new_line_irqs[j] = new_line_irqs[j+1];
+                new_line_irqs[MAX_LINE_IRQS-1].line = 0;
+                new_line_irqs[MAX_LINE_IRQS-1].handler = NULL;
+                removed = true;
+                break;
+            }
+        }
+        assertf(removed, "Line interrupt %d not found", line);
+    }
     enable_interrupts();
 }
 
@@ -651,7 +694,7 @@ void vi_init(void)
     cfg_pending = cfg_raster = 0;
     cfg_refcount = 0;
     pending_blank = 0;
-    cur_line_irq = 0;
+    cur_line_irq = line_irqs;
     preset = &vi_presets[get_tv_type()];
 
     vi_write_begin();
