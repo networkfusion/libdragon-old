@@ -21,16 +21,19 @@
  * *any* change to VI configuration, make sure to call #eia608_stop first,
  * and then call #eia608_start again.
  * 
- * To generate captions, you can use #eia608_caption to display a UTF-8
- * string on the screen. The function will take care of encoding the string
- * into EIA-608 format, doing some basic formatting (word-wrap, and centering),
- * and hiding it after the specified number of seconds.
+ * To generate captions, you can use #eia608_caption_prepare and #eia608_caption_show
+ * to display a UTF-8 string on the screen. These functions will take care of
+ * encoding the string into EIA-608 format, doing some basic formatting (word-wrap,
+ * and centering), and hiding it after the specified number of seconds.
  * 
  * This module also provides a way to display raw EIA-608 data, via
  * #eia608_write_raw. One possible use case for this function is to
  * display captions saved into the Scenarist SCC format, which is a very
  * simple text format that encodes captions as sequence of raw 16-bit
  * EIA-608 words.
+ * 
+ * @note The runtime performance impact of this module is around ~100 µs per
+ *       VI frame (so 60 Hz), irrespective of the actual game speed.
  * 
  * @note EIA-608 is a standard for NTSC video signals. It is not compatible
  *       with PAL or MPAL TVs.
@@ -233,7 +236,7 @@ void eia608_write_ctrl_raw(eia608_ctrl_t ctrl);
 void eia608_caption_prepare(eia608_channel_t cc, const char *utf8_str, eia608_captionparms_t *parms);
 
 /**
- * @brief Show a caption that was previously prepared with #eia608_caption
+ * @brief Show a caption that was previously prepared with #eia608_caption_prepare
  * 
  * This shows a caption that was prepared by #eia608_caption_prepare. The caption
  * will be displayed on the screen for the specified duration, and then hidden.

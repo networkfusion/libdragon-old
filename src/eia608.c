@@ -17,6 +17,22 @@
 #include <assert.h>
 #include <string.h>
 
+/**
+ * @brief Activate debugging mode for EIA608 signal
+ * 
+ * This macro will do a few things:
+ * - Allow PAL
+ * - Stick the EIA608 line to the top of the output window
+ * - Make the EAI608 line 8 lines big so that it's more visible
+ * 
+ * This would allow to visually debug the implementation by configuring large
+ * borders, so that EIA608 becomes visible. Obviously it will likely break
+ * *actual* captions.
+ */
+#define DEBUG_EIA608            0
+
+#define EIA608_IRQ_SAFEMARGIN   4     ///< How many halflines to trigger the IRQ before the actual line
+
 #define SIG_ON      0x8421            ///< IRE 50 (50% intensity RGBA16)
 #define SIG_OFF     0x0000            ///< IRE 0
 
@@ -36,12 +52,13 @@ static int force_clear_timer;
 static int irq_errors;
 
 static struct {
-    bool interlaced;            ///< Whether the parameters refer to interlaced mode or not
-    uint32_t reg_ctrl;          ///< Value to set for VI_CTRL
-    uint32_t reg_h_video;       ///< Value to set for VI_H_VIDEO
-    uint32_t reg_xscale;        ///< Value to set for VI_X_SCALE
-    int v_line_start;           ///< Lines to draw
-    int v_line_end;             ///< Lines to draw
+    bool interlaced;                        ///< Whether the parameters refer to interlaced mode or not
+    uint32_t reg_ctrl;                      ///< Value to set for VI_CTRL
+    uint32_t reg_h_video;                   ///< Value to set for VI_H_VIDEO
+    uint32_t reg_xscale;                    ///< Value to set for VI_X_SCALE
+    int v_line_start;                       ///< Lines to draw
+    int v_line_end;                         ///< Lines to draw
+    int out_x0, out_y0, out_x1, out_y1;     ///< Previous output window
 } sigparms;
 
 static uint16_t* linebuffer_write_bits(uint16_t* buffer, bool on, int nbits)
@@ -110,6 +127,7 @@ static void recalc_parms(void)
     ctrl |= !sys_bbplayer() ? VI_PIXEL_ADVANCE_DEFAULT : VI_PIXEL_ADVANCE_BBPLAYER;
     ctrl |= VI_CTRL_TYPE_16_BPP;   // 16-bit color
     ctrl |= VI_AA_MODE_RESAMPLE;   // resample AA mode
+    ctrl |= vi_read(VI_CTRL) & VI_CTRL_SERRATE;   // keep interlace mode if active
 
     bool interlaced = ctrl & VI_CTRL_SERRATE;
 
@@ -143,7 +161,17 @@ static void recalc_parms(void)
     sigparms.reg_h_video = (h_start << 16) | h_end;
     sigparms.reg_xscale = (xoffset_fx << 16) | xscale_fx;
     sigparms.v_line_start = v_halfline;
-    sigparms.v_line_end = v_halfline + interlaced ? 2 : 1;
+    sigparms.v_line_end = v_halfline + (interlaced ? 2 : 1);
+
+    // For now, we only support default NTSC output where the real output
+    // begins on line 23, just one line after the EIA-608 signal.
+    vi_get_output(&sigparms.out_x0, &sigparms.out_y0, &sigparms.out_x1, &sigparms.out_y1);
+    #if DEBUG_EIA608
+    sigparms.v_line_start = sigparms.out_y0 - 16;
+    sigparms.v_line_end = sigparms.out_y0;
+    #endif
+    assertf(sigparms.v_line_end == sigparms.out_y0,
+        "EIA-608: unimplemented support for borders");
 }
 
 static void __eia608_interrupt(void)
@@ -170,53 +198,63 @@ static void __eia608_interrupt(void)
         // Draw the data into the linebuffer
         linebuffer_write(&linebuffer, data);
     }
-    
+
     // The VI should still be drawing the line *before* the one that we want
     // to draw on. If we're not there, it means that the interrupt was late,
     // so we'll just skip this frame.
-    if ((*VI_V_CURRENT|1) != sigparms.v_line_start-2) {
+    if ((*VI_V_CURRENT|1) >= (sigparms.v_line_start|1)-2) {
+        #if DEBUG_EIA608
+        debugf("EIA-608: IRQ error %ld %d\n", *VI_V_CURRENT, sigparms.v_line_start);
+        #endif
         ++irq_errors;
         return;
     }
 
     // Fetch the current VI configuration
     uint32_t old_origin = *VI_ORIGIN;
-    uint32_t old_width = *VI_WIDTH;
     uint32_t old_ctrl = *VI_CTRL;
     uint32_t old_h_video = *VI_H_VIDEO;
     uint32_t old_x_scale = *VI_X_SCALE;
     uint32_t old_y_scale = *VI_Y_SCALE;
 
-    // Wait for the line to match the one we're expecting
-    while ((*VI_V_CURRENT|1) != sigparms.v_line_start) {}
+    uint32_t new_origin = (uint32_t)(linebuffer.buffer);
+    uint32_t new_ctrl = sigparms.reg_ctrl;
+    uint32_t new_h_video = sigparms.reg_h_video;
+    uint32_t new_x_scale = sigparms.reg_xscale;
+    uint32_t new_y_scale = 0; // FIXME: this seems to revert the interlacing fix?
 
+    // Wait for the line to match the one we're expecting
+    while ((*VI_V_CURRENT|1) < (sigparms.v_line_start|1)-2) {}
+    
     // We are now in hblank. Quickly switch VI configuration to draw the
-    // linebuffer.
-    *VI_ORIGIN = PhysicalAddr(linebuffer.buffer);
-    *VI_WIDTH = linebuffer.width;
-    *VI_CTRL = sigparms.reg_ctrl;
-    *VI_H_VIDEO = sigparms.reg_h_video;
-    *VI_X_SCALE = sigparms.reg_xscale;
-    *VI_Y_SCALE = 0;
+    // linebuffer. Notice that we don't need to set VI_WIDTH because Y scale is 0 anyway.
+    *VI_ORIGIN = new_origin;
+    *VI_CTRL = new_ctrl;
+    *VI_H_VIDEO = new_h_video;
+    *VI_X_SCALE = new_x_scale;
+    *VI_Y_SCALE = new_y_scale;
+    MEMORY_BARRIER();
 
     // Wait for the EIA-608 signal to be displayed
     // Displaying one line takes less than 60us, so we realistically don't
     // have time to do much else, and it would be a waste to retrigger another
     // interrupt.
-    while ((*VI_V_CURRENT|1) < sigparms.v_line_end) {}
+    while ((*VI_V_CURRENT|1) < (sigparms.v_line_end|1)) {}
 
     // Restore the original VI configuration
     *VI_ORIGIN = old_origin;
-    *VI_WIDTH = old_width;
     *VI_CTRL = old_ctrl;
     *VI_H_VIDEO = old_h_video;
     *VI_X_SCALE = old_x_scale;
     *VI_Y_SCALE = old_y_scale;
+    MEMORY_BARRIER();
 }
 
 void eia608_init(void)
 {
+    #if !DEBUG_EIA608
     assertf(get_tv_type() == TV_NTSC, "EIA-608 is only supported on NTSC");
+    #endif
     assert(ring_buffer == NULL);
     ring_buffer = malloc(RING_BUFFER_SIZE * 2);
     rb_rpos = rb_wpos = 0;
@@ -243,8 +281,20 @@ void eia608_start(void)
     for (int i=0; i<30; i++)
         ring_buffer[rb_wpos++] = EIA608_NOP;
 
-    // Enable the line interrupts
-    vi_set_line_interrupt(sigparms.v_line_start-2, __eia608_interrupt);
+    vi_write_begin();
+        // Enable the line interrupt
+        vi_set_line_interrupt(sigparms.v_line_start-EIA608_IRQ_SAFEMARGIN, __eia608_interrupt);
+        // Increase the output window to include the EIA-608 signal
+        vi_set_output(sigparms.out_x0, sigparms.v_line_start, sigparms.out_x1, sigparms.out_y1);
+    vi_write_end();
+}
+
+void eia608_stop(void)
+{
+    vi_write_begin();
+        vi_set_output(sigparms.out_x0, sigparms.out_y0, sigparms.out_x1, sigparms.out_y1);
+        vi_set_line_interrupt(sigparms.v_line_start-EIA608_IRQ_SAFEMARGIN, NULL);
+    vi_write_end();
 }
 
 static uint8_t odd_parity(uint8_t value)
