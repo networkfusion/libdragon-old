@@ -96,12 +96,15 @@ static void __vi_validate_config(void)
     #endif
 
     // Check for some common mistakes in VI configuration. Since they are based
-    // on VI_CTRL and VI_X_SCALE, do that only if they have been changed.
-    if (!(cfg_pending & ((1 << VI_TO_INDEX(VI_CTRL)) | (1 << VI_TO_INDEX(VI_X_SCALE)))))
+    // on VI_CTRL, VI_X_SCALE and VI_H_VIDEO, do that only if they have been changed.
+    if (!(cfg_pending & ((1 << VI_TO_INDEX(VI_CTRL)) | 
+                         (1 << VI_TO_INDEX(VI_X_SCALE)) |
+                         (1 << VI_TO_INDEX(VI_H_VIDEO)))))
         return;
 
     uint32_t ctrl = vi_read(VI_CTRL); 
     uint32_t xscale = vi_read(VI_X_SCALE);
+    uint32_t hstart = vi_read(VI_H_VIDEO) >> 16;
     bool bpp16 = (ctrl & VI_CTRL_TYPE) == VI_CTRL_TYPE_16_BPP;
     bool dedither = ctrl & VI_DEDITHER_FILTER_ENABLE;
     bool divot = ctrl & VI_DIVOT_ENABLE;
@@ -109,8 +112,11 @@ static void __vi_validate_config(void)
 
     switch (mode) {
     case VI_AA_MODE_NONE:
-        if (xscale <= 0x200 && bpp16)
-            debugf("VI WARNING: setting VI_AA_MODE_NONE with 16 bpp and VI_X_SCALE <= 0x200 (aka: framebuffer widths <= 320) can cause artifacts on NTSC\n");
+        if (xscale <= 0x200 && bpp16 && hstart <= 128) {
+            debugf("VI WARNING: setting VI_AA_MODE_NONE with 16 bpp, X_SCALE <= 0x200 and H_START <= 128 can cause visual artifacts\n");
+            debugf("A common scenario where this happens: NTSC units, with default output area, and 320x240 framebuffer.\n");
+            debugf("Possible workarounds: activate resampling with VI_AA_MODE_RESAMPLE, increase X_SCALE\n");
+        }
         if (divot)
             debugf("VI WARNING: divot filter is only useful when the AA filter is enabled\n");
         break;
