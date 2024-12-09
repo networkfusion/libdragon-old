@@ -124,7 +124,9 @@
 extern "C" {
 #endif
 
+///@cond
 typedef struct surface_s surface_t;
+///@endcond
 
 /** @brief Number of useful 32-bit registers at the register base */
 #define VI_REGISTERS_COUNT      14
