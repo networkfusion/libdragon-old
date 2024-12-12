@@ -720,6 +720,7 @@ void vi_init(void)
 
     uint32_t ctrl = 0;
     ctrl |= !sys_bbplayer() ? VI_PIXEL_ADVANCE_DEFAULT : VI_PIXEL_ADVANCE_BBPLAYER;
+    ctrl |= VI_AA_MODE_RESAMPLE;
     vi_write(VI_CTRL, ctrl);
 
     // Mark all registers as pending, so that they will be written at next vblank.
