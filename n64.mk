@@ -1,6 +1,5 @@
 BUILD_DIR ?= .
 SOURCE_DIR ?= .
-DSO_COMPRESS_LEVEL ?= 1
 
 N64_ROM_TITLE = "Made with libdragon" # Override this with the name of your game or project
 N64_ROM_SAVETYPE = # Supported savetypes: none eeprom4k eeprom16 sram256k sram768k sram1m flashram
@@ -8,6 +7,7 @@ N64_ROM_RTC = # Set to true to enable the Joybus Real-Time Clock
 N64_ROM_REGIONFREE = # Set to true to allow booting on any console region
 N64_ROM_REGION = # Set to a region code (emulators will boot on a specific console region)
 N64_ROM_ELFCOMPRESS = 1 # Set compression level of ELF file in ROM
+N64_ROM_DSOCOMPRESS = 1 # Set compression level of DSOs file in ROM
 N64_ROM_CONTROLLER1 = # Sets the type of Controller 1 in the Advanced Homebrew Header. This could influence emulator behaviour such as Ares'
 N64_ROM_CONTROLLER2 = # Sets the type of Controller 2 in the Advanced Homebrew Header. This could influence emulator behaviour such as Ares'
 N64_ROM_CONTROLLER3 = # Sets the type of Controller 3 in the Advanced Homebrew Header. This could influence emulator behaviour such as Ares'
@@ -214,7 +214,7 @@ $(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.cpp
 	@echo "    [DSO] $@"
 	$(N64_LD) $(N64_DSOLDFLAGS) -Map=$(basename $(DSO_ELF)).map -o $(DSO_ELF) $(filter %.o, $^)
 	$(N64_SIZE) -G $(DSO_ELF)
-	$(N64_DSO) -o $(dir $@) -c $(DSO_COMPRESS_LEVEL) $(DSO_ELF)
+	$(N64_DSO) -o $(dir $@) -c $(N64_ROM_DSOCOMPRESS) $(DSO_ELF)
 	$(N64_SYM) $(DSO_ELF) $@.sym
 	
 %.externs:
