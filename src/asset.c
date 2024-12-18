@@ -202,7 +202,13 @@ static bool asset_read(int fd, asset_header_t *header, int *sz, void *buf, int *
             assertf(((uintptr_t)(buf) & (ASSET_ALIGNMENT_MIN-1)) == 0, "Asset buffer incorrectly aligned.");
             #endif
         }
-        lseek(fd, -((off_t)sizeof(asset_header_t)), SEEK_CUR);
+        // Seek back before the header. If the file is smaller than the header, we would
+        // seek to a negative position. Normally all our FS implementations simply
+        // clamp to 0, but this code is also compiled on PC, where the function
+        // can just fail returning -1 by the spec. In that case, we just seek
+        // to the beginning of the file.
+        if (lseek(fd, -((off_t)sizeof(asset_header_t)), SEEK_CUR) == -1 && errno == EINVAL)
+            lseek(fd, 0, SEEK_SET);
         read(fd, buf, *sz);
         return true;
     }
