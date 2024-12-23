@@ -132,6 +132,9 @@ static void apply_style(int font_type, style_t *s)
     default:
         assert(0);
     }
+
+    if (s->custom)
+        s->custom(s->custom_arg);
 }
 
 rdpq_font_t* rdpq_font_load_buf(void *buf, int sz)
@@ -141,7 +144,7 @@ rdpq_font_t* rdpq_font_load_buf(void *buf, int sz)
     assertf(sz >= sizeof(rdpq_font_t), "Font buffer too small (sz=%d)", sz);
     assertf(memcmp(fnt->magic, FONT_MAGIC_LOADED, 3), "Trying to load already loaded font data (buf=%p, sz=%08x)", buf, sz);
     assertf(!memcmp(fnt->magic, FONT_MAGIC, 3), "invalid font data (magic: %c%c%c)", fnt->magic[0], fnt->magic[1], fnt->magic[2]);
-    assertf(fnt->version == 10, "unsupported font version: %d\nPlease regenerate fonts with an updated mkfont tool", fnt->version);
+    assertf(fnt->version == 11, "unsupported font version: %d\nPlease regenerate fonts with an updated mkfont tool", fnt->version);
     fnt->ranges = PTR_DECODE(fnt, fnt->ranges);
     if (fnt->sparse_range) {
         fnt->sparse_range = PTR_DECODE(fnt, fnt->sparse_range);
@@ -382,6 +385,8 @@ void rdpq_font_style(rdpq_font_t *fnt, uint8_t style_id, const rdpq_fontstyle_t 
     style_t *s = &fnt->styles[style_id];
     s->color = style->color;
     s->outline_color = style->outline_color;
+    s->custom = style->custom;
+    s->custom_arg = style->custom_arg;
 }
 
 int rdpq_font_render_paragraph(const rdpq_font_t *fnt, const rdpq_paragraph_char_t *chars, float x0, float y0)
@@ -395,12 +400,6 @@ int rdpq_font_render_paragraph(const rdpq_font_t *fnt, const rdpq_paragraph_char
     const rdpq_paragraph_char_t *ch = chars;
     while (ch->font_id == font_id) {
         const glyph_t *g = &fnt->glyphs[ch->glyph];
-        if (UNLIKELY(ch->style_id != cur_style)) {
-            assertf(ch->style_id < fnt->num_styles,
-                 "style %d not defined in this font", ch->style_id);
-            apply_style(fnt->flags & FONT_FLAG_TYPE_MASK, &fnt->styles[ch->style_id]);
-            cur_style = ch->style_id;
-        }
         if (UNLIKELY(g->natlas != cur_atlas)) {
             atlas_t *a = &fnt->atlases[g->natlas];
             rspq_block_run(a->up);
@@ -420,6 +419,12 @@ int rdpq_font_render_paragraph(const rdpq_font_t *fnt, const rdpq_paragraph_char
                 rdram_loading = 0;
             }
             cur_atlas = g->natlas;
+        }
+        if (UNLIKELY(ch->style_id != cur_style)) {
+            assertf(ch->style_id < fnt->num_styles,
+                 "style %d not defined in this font", ch->style_id);
+            apply_style(fnt->flags & FONT_FLAG_TYPE_MASK, &fnt->styles[ch->style_id]);
+            cur_style = ch->style_id;
         }
 
         // Draw the glyph
