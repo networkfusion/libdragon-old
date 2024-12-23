@@ -54,6 +54,7 @@ static void setup_render_mode(int font_type, tex_format_t fmt)
             rdpq_mode_combiner(RDPQ_COMBINER1((0,0,0,PRIM), (TEX0,0,PRIM,0)));
             rdpq_mode_alphacompare(1);
             rdpq_mode_tlut(TLUT_RGBA16);
+            rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
         rdpq_mode_end();
         break;
     case FONT_TYPE_MONO_OUTLINE:
@@ -70,11 +71,12 @@ static void setup_render_mode(int font_type, tex_format_t fmt)
         rdpq_mode_begin();
             rdpq_set_mode_standard();
             rdpq_mode_combiner(RDPQ_COMBINER2(
-                (ONE,TEX1,ENV,0),       (0,0,0,TEX1),
+                (ONE,TEX1,ENV,0),       (TEX1,0,PRIM,0),
                 (TEX1,0,PRIM,COMBINED), (0,0,0,COMBINED)
             ));
             rdpq_mode_antialias(AA_REDUCED);
             rdpq_mode_tlut(TLUT_IA16);
+            rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
         rdpq_mode_end();
         rdpq_change_other_modes_raw(SOM_BLALPHA_MASK, SOM_BLALPHA_CVG_TIMES_CC);
         break;
@@ -83,7 +85,7 @@ static void setup_render_mode(int font_type, tex_format_t fmt)
         rdpq_mode_begin();
             rdpq_set_mode_standard();
             rdpq_mode_combiner(RDPQ_COMBINER2(
-                (ONE,TEX1,ENV,0),       (0,0,0,TEX1),
+                (ONE,TEX1,ENV,0),       (TEX1,0,PRIM,0),
                 (TEX1,0,PRIM,COMBINED), (0,0,0,COMBINED)
             ));
             rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
@@ -96,13 +98,15 @@ static void setup_render_mode(int font_type, tex_format_t fmt)
         case FMT_CI4:
         case FMT_CI8:
             rdpq_mode_begin();
-                rdpq_set_mode_copy(true);
                 rdpq_mode_alphacompare(1);
+                rdpq_mode_combiner(RDPQ_COMBINER1((TEX0,0,PRIM,0), (TEX0,0,PRIM,0)));
+                rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
             rdpq_mode_end();
             break;
         case FMT_RGBA32:
             rdpq_mode_begin();
                 rdpq_set_mode_standard();
+                rdpq_mode_combiner(RDPQ_COMBINER1((TEX0,0,PRIM,0), (TEX0,0,PRIM,0)));
                 rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
             rdpq_mode_end();
             break;
@@ -125,9 +129,8 @@ static void apply_style(int font_type, style_t *s)
         // fallthrough
     case FONT_TYPE_ALIASED:
     case FONT_TYPE_MONO:
-        rdpq_set_prim_color(s->color);
-        break;
     case FONT_TYPE_BITMAP:
+        rdpq_set_prim_color(s->color);
         break;
     default:
         assert(0);
