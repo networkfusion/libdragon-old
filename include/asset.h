@@ -69,6 +69,8 @@
 
 #ifdef N64
 #include "debug.h"
+#else
+#define assertf(x, ...) assert(x)
 #endif
 
 #ifdef __cplusplus
