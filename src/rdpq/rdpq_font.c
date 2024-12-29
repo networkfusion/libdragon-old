@@ -323,7 +323,6 @@ static int16_t __rdpq_font_glyph_sparse(const rdpq_font_t *fnt, uint32_t codepoi
     uint32_t f = phf_mix32(phf_round32(codepoint, phf_round32(d, seed)));
     uint32_t idx = ((uint64_t)f * fnt->sparse_range->m) >> 32;
     int16_t glyph = fnt->sparse_range->values[idx];
-    assertf(glyph >= 0, "internal error: perfect hash table lookup failed for codepoint %ld", codepoint);
     return glyph;
 }
 
