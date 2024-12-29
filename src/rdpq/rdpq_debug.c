@@ -3,6 +3,7 @@
  * @brief RDP Command queue: debugging helpers
  * @ingroup rdpq
  */
+#define _GNU_SOURCE
 #include "rdpq_debug.h"
 #include "rdpq_debug_internal.h"
 #ifdef N64
@@ -470,6 +471,31 @@ int rdpq_debug_disasm_size(uint64_t *buf) {
     }
 }
 
+static const char* cc_rgb_suba[16] = {"comb", "tex0", "tex1", "prim", "shade", "env", "1", "noise", "0","0","0","0","0","0","0","0"};
+static const char* cc_rgb_subb[16] = {"comb", "tex0", "tex1", "prim", "shade", "env", "keycenter", "k4", "0","0","0","0","0","0","0","0"};
+static const char* cc_rgb_mul[32] = {"comb", "tex0", "tex1", "prim", "shade", "env", "keyscale", "comb.a", "tex0.a", "tex1.a", "prim.a", "shade.a", "env.a", "lod_frac", "prim_lod_frac", "k5", "0","0","0","0","0","0","0","0", "0","0","0","0","0","0","0","0"};
+static const char* cc_rgb_add[8] = {"comb", "tex0", "tex1", "prim", "shade", "env", "1", "0"};
+static const char* cc_alpha_addsub[8] = {"comb", "tex0", "tex1", "prim", "shade", "env", "1", "0"};
+static const char* cc_alpha_mul[8] = {"lod_frac", "tex0", "tex1", "prim", "shade", "env", "prim_lod_frac", "0"};
+
+char* rdpq_debug_disasm_cc(uint64_t cc64)
+{
+    char *buf;
+    colorcombiner_t cc = decode_cc(cc64);
+    if ((cc64 & (1ull<<63)) || memcmp(&cc.cyc[0], &cc.cyc[1], sizeof(struct cc_cycle_s)) == 0) {
+        asprintf(&buf, "RDPQ_COMBINER1((%s,%s,%s,%s),(%s,%s,%s,%s))", 
+            cc_rgb_suba[cc.cyc[0].rgb.suba], cc_rgb_subb[cc.cyc[0].rgb.subb], cc_rgb_mul[cc.cyc[0].rgb.mul], cc_rgb_add[cc.cyc[0].rgb.add],
+            cc_alpha_addsub[cc.cyc[0].alpha.suba], cc_alpha_addsub[cc.cyc[0].alpha.subb], cc_alpha_mul[cc.cyc[0].alpha.mul], cc_alpha_addsub[cc.cyc[0].alpha.add]);
+    } else {
+        asprintf(&buf, "RDPQ_COMBINER2((%s,%s,%s,%s),(%s,%s,%s,%s),(%s,%s,%s,%s),(%s,%s,%s,%s))",
+            cc_rgb_suba[cc.cyc[0].rgb.suba], cc_rgb_subb[cc.cyc[0].rgb.subb], cc_rgb_mul[cc.cyc[0].rgb.mul], cc_rgb_add[cc.cyc[0].rgb.add],
+            cc_alpha_addsub[cc.cyc[0].alpha.suba], cc_alpha_addsub[cc.cyc[0].alpha.subb], cc_alpha_mul[cc.cyc[0].alpha.mul], cc_alpha_addsub[cc.cyc[0].alpha.add],
+            cc_rgb_suba[cc.cyc[1].rgb.suba], cc_rgb_subb[cc.cyc[1].rgb.subb], cc_rgb_mul[cc.cyc[1].rgb.mul], cc_rgb_add[cc.cyc[1].rgb.add],
+            cc_alpha_addsub[cc.cyc[1].alpha.suba], cc_alpha_addsub[cc.cyc[1].alpha.subb], cc_alpha_mul[cc.cyc[1].alpha.mul], cc_alpha_addsub[cc.cyc[1].alpha.add]);
+    }
+    return buf;
+}
+
 /** @brief Multiplication factor to convert a number to fixed point with precision n */
 #define FX(n)          (1.0f / (1<<(n)))
 /** @brief Convert a 16.16 fixed point number into floating point */
@@ -580,21 +606,15 @@ static void __rdpq_debug_disasm(uint64_t *addr, uint64_t *buf, FILE *out)
         fprintf(out, "\n");
     }; return;
     case 0x3C: { fprintf(out, "SET_COMBINE_MODE ");
-        static const char* rgb_suba[16] = {"comb", "tex0", "tex1", "prim", "shade", "env", "1", "noise", "0","0","0","0","0","0","0","0"};
-        static const char* rgb_subb[16] = {"comb", "tex0", "tex1", "prim", "shade", "env", "keycenter", "k4", "0","0","0","0","0","0","0","0"};
-        static const char* rgb_mul[32] = {"comb", "tex0", "tex1", "prim", "shade", "env", "keyscale", "comb.a", "tex0.a", "tex1.a", "prim.a", "shade.a", "env.a", "lod_frac", "prim_lod_frac", "k5", "0","0","0","0","0","0","0","0", "0","0","0","0","0","0","0","0"};
-        static const char* rgb_add[8] = {"comb", "tex0", "tex1", "prim", "shade", "env", "1", "0"};
-        static const char* alpha_addsub[8] = {"comb", "tex0", "tex1", "prim", "shade", "env", "1", "0"};
-        static const char* alpha_mul[8] = {"lod_frac", "tex0", "tex1", "prim", "shade", "env", "prim_lod_frac", "0"};
         colorcombiner_t cc = decode_cc(buf[0]);
         fprintf(out, "cyc0=[(%s-%s)*%s+%s, (%s-%s)*%s+%s], ",
-            rgb_suba[cc.cyc[0].rgb.suba], rgb_subb[cc.cyc[0].rgb.subb], rgb_mul[cc.cyc[0].rgb.mul], rgb_add[cc.cyc[0].rgb.add],
-            alpha_addsub[cc.cyc[0].alpha.suba], alpha_addsub[cc.cyc[0].alpha.subb], alpha_mul[cc.cyc[0].alpha.mul], alpha_addsub[cc.cyc[0].alpha.add]);
+            cc_rgb_suba[cc.cyc[0].rgb.suba], cc_rgb_subb[cc.cyc[0].rgb.subb], cc_rgb_mul[cc.cyc[0].rgb.mul], cc_rgb_add[cc.cyc[0].rgb.add],
+            cc_alpha_addsub[cc.cyc[0].alpha.suba], cc_alpha_addsub[cc.cyc[0].alpha.subb], cc_alpha_mul[cc.cyc[0].alpha.mul], cc_alpha_addsub[cc.cyc[0].alpha.add]);
         const struct cc_cycle_s passthrough = {0};
         if (!__builtin_memcmp(&cc.cyc[1], &passthrough, sizeof(struct cc_cycle_s))) fprintf(out, "cyc1=[<passthrough>]\n");
         else fprintf(out, "cyc1=[(%s-%s)*%s+%s, (%s-%s)*%s+%s]\n",
-            rgb_suba[cc.cyc[1].rgb.suba], rgb_subb[cc.cyc[1].rgb.subb], rgb_mul[cc.cyc[1].rgb.mul], rgb_add[cc.cyc[1].rgb.add],
-            alpha_addsub[cc.cyc[1].alpha.suba], alpha_addsub[cc.cyc[1].alpha.subb],   alpha_mul[cc.cyc[1].alpha.mul], alpha_addsub[cc.cyc[1].alpha.add]);
+            cc_rgb_suba[cc.cyc[1].rgb.suba], cc_rgb_subb[cc.cyc[1].rgb.subb], cc_rgb_mul[cc.cyc[1].rgb.mul], cc_rgb_add[cc.cyc[1].rgb.add],
+            cc_alpha_addsub[cc.cyc[1].alpha.suba], cc_alpha_addsub[cc.cyc[1].alpha.subb],   cc_alpha_mul[cc.cyc[1].alpha.mul], cc_alpha_addsub[cc.cyc[1].alpha.add]);
     } return;
     case 0x35: { fprintf(out, "SET_TILE         ");
         uint8_t f = BITS(buf[0], 53, 55);
