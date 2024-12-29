@@ -1,6 +1,7 @@
 #ifndef LIBDRAGON_TOOLS_UTILS_H
 #define LIBDRAGON_TOOLS_UTILS_H
 
+#include "polyfill.h"
 #include "../../src/utils.h"
 
 #include <stdio.h>

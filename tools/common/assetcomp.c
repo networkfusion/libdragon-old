@@ -21,7 +21,20 @@
 #undef LZ4_DECOMPRESS_INPLACE_MARGIN
 
 #include "lz4_compress.h"
-#include "utils.h"
+
+static uint8_t* slurp(const char *fn, int *size)
+{
+    FILE *f = fopen(fn, "rb");
+    if (!f) return NULL;
+    fseek(f, 0, SEEK_END);
+    int sz = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    uint8_t *buf = (uint8_t*)malloc(sz);
+    fread(buf, 1, sz, f);
+    fclose(f);
+    if (size) *size = sz;
+    return buf;
+}
 
 void asset_compress_mem_raw(int compression, const uint8_t *data, int sz, uint8_t **output, int *cmp_size, int *winsize, int *margin)
 {
