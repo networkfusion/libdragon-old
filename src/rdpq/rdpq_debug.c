@@ -3,7 +3,9 @@
  * @brief RDP Command queue: debugging helpers
  * @ingroup rdpq
  */
+///@cond
 #define _GNU_SOURCE
+///@endcond
 #include "rdpq_debug.h"
 #include "rdpq_debug_internal.h"
 #ifdef N64
