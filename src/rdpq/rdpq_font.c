@@ -31,7 +31,7 @@ _Static_assert(sizeof(kerning_t) == 3, "kerning_t size is wrong");
 #define PTR_DECODE(font, ptr)    ((void*)(((uint8_t*)(font)) + (uint32_t)(ptr)))
 #define PTR_ENCODE(font, ptr)    ((void*)(((uint8_t*)(ptr)) - (uint32_t)(font)))
 
-static void setup_render_mode(int font_type, tex_format_t fmt, style_t *s)
+static void setup_render_mode(int font_type, tex_format_t fmt)
 {
     switch (font_type) {
     case FONT_TYPE_ALIASED:
@@ -42,7 +42,6 @@ static void setup_render_mode(int font_type, tex_format_t fmt, style_t *s)
             rdpq_set_mode_standard();
             rdpq_mode_combiner(RDPQ_COMBINER1((0,0,0,PRIM), (TEX0,0,PRIM,0)));
             rdpq_mode_alphacompare(1);
-            rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
         rdpq_mode_end();
         break;
     case FONT_TYPE_MONO:
@@ -54,10 +53,6 @@ static void setup_render_mode(int font_type, tex_format_t fmt, style_t *s)
             rdpq_mode_combiner(RDPQ_COMBINER1((0,0,0,PRIM), (TEX0,0,PRIM,0)));
             rdpq_mode_alphacompare(1);
             rdpq_mode_tlut(TLUT_RGBA16);
-            if(s->color.a != 255) {
-                rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
-            }
-            
         rdpq_mode_end();
         break;
     case FONT_TYPE_MONO_OUTLINE:
@@ -76,9 +71,6 @@ static void setup_render_mode(int font_type, tex_format_t fmt, style_t *s)
             rdpq_mode_combiner(RDPQ_COMBINER1((PRIM,ENV,TEX0,ENV), (TEX0,0,PRIM,0)));
             rdpq_mode_antialias(AA_REDUCED);
             rdpq_mode_tlut(TLUT_IA16);
-            if(s->color.a != 255) {
-                rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
-            }
         rdpq_mode_end();
         rdpq_change_other_modes_raw(SOM_BLALPHA_MASK, SOM_BLALPHA_CVG_TIMES_CC);
         break;
@@ -87,7 +79,6 @@ static void setup_render_mode(int font_type, tex_format_t fmt, style_t *s)
         rdpq_mode_begin();
             rdpq_set_mode_standard();
             rdpq_mode_combiner(RDPQ_COMBINER1((PRIM,ENV,TEX0,ENV), (TEX0,0,PRIM,0)));
-            rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
         rdpq_mode_end();
         rdpq_change_other_modes_raw(SOM_BLALPHA_MASK, SOM_BLALPHA_CVG_TIMES_CC);
         break;
@@ -96,28 +87,15 @@ static void setup_render_mode(int font_type, tex_format_t fmt, style_t *s)
         case FMT_RGBA16:
         case FMT_CI4:
         case FMT_CI8:
-            if(color_to_packed32(s->color) != 0xFFFFFFFF) { //Check for white/no tint
-                rdpq_mode_begin();
-                    rdpq_set_mode_standard();
-                    rdpq_mode_alphacompare(1);
-                    rdpq_mode_combiner(RDPQ_COMBINER1((TEX0,0,PRIM,0), (TEX0,0,PRIM,0)));
-                    if(s->color.a != 255) {
-                        rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
-                    }
-                rdpq_mode_end();
-            } else {
-                rdpq_mode_begin();
-                    rdpq_set_mode_copy(true);
-                    rdpq_mode_alphacompare(1);
-                rdpq_mode_end();
-            }
-            
+            rdpq_mode_begin();
+                rdpq_mode_alphacompare(1);
+                rdpq_mode_combiner(RDPQ_COMBINER1((TEX0,0,PRIM,0), (TEX0,0,PRIM,0)));
+            rdpq_mode_end();
             break;
         case FMT_RGBA32:
             rdpq_mode_begin();
                 rdpq_set_mode_standard();
                 rdpq_mode_combiner(RDPQ_COMBINER1((TEX0,0,PRIM,0), (TEX0,0,PRIM,0)));
-                rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
             rdpq_mode_end();
             break;
         default:
@@ -130,7 +108,7 @@ static void setup_render_mode(int font_type, tex_format_t fmt, style_t *s)
     }
 }
 
-static void apply_style(int font_type, style_t *s)
+static void apply_style(int font_type, style_t *s, tex_format_t fmt)
 {
     switch (font_type) {
     case FONT_TYPE_MONO_OUTLINE:
@@ -145,7 +123,30 @@ static void apply_style(int font_type, style_t *s)
     default:
         assert(0);
     }
+    //Blender setup
+    switch (font_type) {
+        case FONT_TYPE_MONO:
+            if(s->color.a != 255) {
+                rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+            } else {
+                rdpq_mode_blender(0);
+            }
+            break;
 
+        case FONT_TYPE_MONO_OUTLINE:
+        case FONT_TYPE_ALIASED_OUTLINE:
+        case FONT_TYPE_ALIASED:
+            rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+            break;
+        
+        case FONT_TYPE_BITMAP:
+            if(s->color.a != 255 || fmt == FMT_RGBA32) {
+                rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+            } else {
+                rdpq_mode_blender(0);
+            }
+            break;
+    }
     if (s->custom)
         s->custom(s->custom_arg);
 }
@@ -177,6 +178,7 @@ rdpq_font_t* rdpq_font_load_buf(void *buf, int sz)
         rspq_block_begin();
             // Setup the render mode for this font type
             int font_type = fnt->flags & FONT_FLAG_TYPE_MASK;
+            setup_render_mode(font_type, sprite_get_format(spr));
 
             // Get the atlas surface and check if it fits into TMEM or not,
             // as we will need different rendering strategies.
@@ -408,7 +410,7 @@ int rdpq_font_render_paragraph(const rdpq_font_t *fnt, const rdpq_paragraph_char
 
     const rdpq_paragraph_char_t *ch = chars;
     while (ch->font_id == font_id) {
-        bool chg_atlas = false;
+        bool force_apply_style = false;
         const glyph_t *g = &fnt->glyphs[ch->glyph];
         if (UNLIKELY(g->natlas != cur_atlas)) {
             atlas_t *a = &fnt->atlases[g->natlas];
@@ -429,13 +431,12 @@ int rdpq_font_render_paragraph(const rdpq_font_t *fnt, const rdpq_paragraph_char
                 rdram_loading = 0;
             }
             cur_atlas = g->natlas;
-            chg_atlas = true;
+            force_apply_style = true;
         }
-        if (chg_atlas || UNLIKELY(ch->style_id != cur_style)) {
+        if (force_apply_style || UNLIKELY(ch->style_id != cur_style)) {
             assertf(ch->style_id < fnt->num_styles,
                  "style %d not defined in this font", ch->style_id);
-            setup_render_mode(fnt->flags & FONT_FLAG_TYPE_MASK, sprite_get_format(fnt->atlases[cur_atlas].sprite), &fnt->styles[ch->style_id]);
-            apply_style(fnt->flags & FONT_FLAG_TYPE_MASK, &fnt->styles[ch->style_id]);
+            apply_style(fnt->flags & FONT_FLAG_TYPE_MASK, &fnt->styles[ch->style_id], sprite_get_format(fnt->atlases[g->natlas].sprite));
             cur_style = ch->style_id;
         }
 
