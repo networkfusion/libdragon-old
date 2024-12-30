@@ -3,9 +3,6 @@
  * @brief RDP Command queue: debugging helpers
  * @ingroup rdpq
  */
-///@cond
-#define _GNU_SOURCE
-///@endcond
 #include "rdpq_debug.h"
 #include "rdpq_debug_internal.h"
 #ifdef N64
@@ -482,20 +479,20 @@ static const char* cc_alpha_mul[8] = {"lod_frac", "tex0", "tex1", "prim", "shade
 
 char* rdpq_debug_disasm_cc(uint64_t cc64)
 {
-    char *buf;
+    char buf[256];
     colorcombiner_t cc = decode_cc(cc64);
     if ((cc64 & (1ull<<63)) || memcmp(&cc.cyc[0], &cc.cyc[1], sizeof(struct cc_cycle_s)) == 0) {
-        asprintf(&buf, "RDPQ_COMBINER1((%s,%s,%s,%s),(%s,%s,%s,%s))", 
+        snprintf(buf, sizeof(buf), "RDPQ_COMBINER1((%s,%s,%s,%s),(%s,%s,%s,%s))", 
             cc_rgb_suba[cc.cyc[0].rgb.suba], cc_rgb_subb[cc.cyc[0].rgb.subb], cc_rgb_mul[cc.cyc[0].rgb.mul], cc_rgb_add[cc.cyc[0].rgb.add],
             cc_alpha_addsub[cc.cyc[0].alpha.suba], cc_alpha_addsub[cc.cyc[0].alpha.subb], cc_alpha_mul[cc.cyc[0].alpha.mul], cc_alpha_addsub[cc.cyc[0].alpha.add]);
     } else {
-        asprintf(&buf, "RDPQ_COMBINER2((%s,%s,%s,%s),(%s,%s,%s,%s),(%s,%s,%s,%s),(%s,%s,%s,%s))",
+        snprintf(buf, sizeof(buf), "RDPQ_COMBINER2((%s,%s,%s,%s),(%s,%s,%s,%s),(%s,%s,%s,%s),(%s,%s,%s,%s))",
             cc_rgb_suba[cc.cyc[0].rgb.suba], cc_rgb_subb[cc.cyc[0].rgb.subb], cc_rgb_mul[cc.cyc[0].rgb.mul], cc_rgb_add[cc.cyc[0].rgb.add],
             cc_alpha_addsub[cc.cyc[0].alpha.suba], cc_alpha_addsub[cc.cyc[0].alpha.subb], cc_alpha_mul[cc.cyc[0].alpha.mul], cc_alpha_addsub[cc.cyc[0].alpha.add],
             cc_rgb_suba[cc.cyc[1].rgb.suba], cc_rgb_subb[cc.cyc[1].rgb.subb], cc_rgb_mul[cc.cyc[1].rgb.mul], cc_rgb_add[cc.cyc[1].rgb.add],
             cc_alpha_addsub[cc.cyc[1].alpha.suba], cc_alpha_addsub[cc.cyc[1].alpha.subb], cc_alpha_mul[cc.cyc[1].alpha.mul], cc_alpha_addsub[cc.cyc[1].alpha.add]);
     }
-    return buf;
+    return strdup(buf);
 }
 
 /** @brief Multiplication factor to convert a number to fixed point with precision n */
