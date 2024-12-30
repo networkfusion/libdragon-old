@@ -69,10 +69,7 @@ static void setup_render_mode(int font_type, tex_format_t fmt)
         // to turn on AA for this to work (for unknown reasons).
         rdpq_mode_begin();
             rdpq_set_mode_standard();
-            rdpq_mode_combiner(RDPQ_COMBINER2(
-                (ONE,TEX1,ENV,0),       (0,0,0,TEX1),
-                (TEX1,0,PRIM,COMBINED), (0,0,0,COMBINED)
-            ));
+            rdpq_mode_combiner(RDPQ_COMBINER1((PRIM,ENV,TEX0,ENV), (0,0,0,TEX0)));
             rdpq_mode_antialias(AA_REDUCED);
             rdpq_mode_tlut(TLUT_IA16);
         rdpq_mode_end();
@@ -82,10 +79,7 @@ static void setup_render_mode(int font_type, tex_format_t fmt)
         // Atlases are IA8, where I modulates between the fill color and the outline color.
         rdpq_mode_begin();
             rdpq_set_mode_standard();
-            rdpq_mode_combiner(RDPQ_COMBINER2(
-                (ONE,TEX1,ENV,0),       (0,0,0,TEX1),
-                (TEX1,0,PRIM,COMBINED), (0,0,0,COMBINED)
-            ));
+            rdpq_mode_combiner(RDPQ_COMBINER1((PRIM,ENV,TEX0,ENV), (0,0,0,TEX0)));
             rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
         rdpq_mode_end();
         rdpq_change_other_modes_raw(SOM_BLALPHA_MASK, SOM_BLALPHA_CVG_TIMES_CC);
@@ -196,26 +190,24 @@ rdpq_font_t* rdpq_font_load_buf(void *buf, int sz)
                 rdpq_tex_upload_tlut(sprite_get_palette(spr), 0, font_type == FONT_TYPE_MONO ? 64 : 32);
                 if (fits_tmem) {
                     rdpq_tex_multi_begin();
-                    // Outline font uses only TILE1 and TILE2 because the combiner only uses
-                    // TEX1 and never TEX0 (see recalc_style).
-                    rdpq_tex_upload(TILE1, &surf, NULL);
-                    rdpq_tex_reuse(TILE2, &(rdpq_texparms_t){ .palette = 1 });
+                    rdpq_tex_upload(TILE0, &surf, NULL);
+                    rdpq_tex_reuse(TILE1, &(rdpq_texparms_t){ .palette = 1 });
                     rdpq_tex_multi_end();
                 } else {
                     rdpq_set_texture_image_raw(0, PhysicalAddr(surf.buffer), FMT_CI8, surf.width/2, surf.height);
-                    rdpq_set_tile(TILE1, sprite_get_format(spr), 0    , 48, &(rdpq_tileparms_t){ .palette = 0 });
-                    rdpq_set_tile(TILE2, sprite_get_format(spr), 0    , 48, &(rdpq_tileparms_t){ .palette = 1 });
+                    rdpq_set_tile(TILE0, sprite_get_format(spr), 0    , 48, &(rdpq_tileparms_t){ .palette = 0 });
+                    rdpq_set_tile(TILE1, sprite_get_format(spr), 0    , 48, &(rdpq_tileparms_t){ .palette = 1 });
                     rdpq_set_tile(TILE4, FMT_CI8, 0    , 48, NULL);
                 }
                 break;
             }
             case FONT_TYPE_ALIASED_OUTLINE:
                 if (fits_tmem) {
-                    rdpq_sprite_upload(TILE1, spr, NULL);
+                    rdpq_sprite_upload(TILE0, spr, NULL);
                 } else {
                     rdpq_set_texture_image(&surf);
-                    rdpq_set_tile(TILE1, sprite_get_format(spr), 0, 48, NULL);
-                    rdpq_set_tile(TILE5, sprite_get_format(spr), 0, 48, NULL);
+                    rdpq_set_tile(TILE0, sprite_get_format(spr), 0, 48, NULL);
+                    rdpq_set_tile(TILE4, sprite_get_format(spr), 0, 48, NULL);
                 }
                 break;
             case FONT_TYPE_ALIASED:
@@ -405,9 +397,9 @@ int rdpq_font_render_paragraph(const rdpq_font_t *fnt, const rdpq_paragraph_char
             if (a->sprite->hslices == 0) { // check if the atlas is in RDRAM instead of TMEM
                 switch (fnt->flags & FONT_FLAG_TYPE_MASK) {
                 case FONT_TYPE_MONO:            rdram_loading = 1; tile_offset = 0; break;
-                case FONT_TYPE_MONO_OUTLINE:    rdram_loading = 1; tile_offset = 1; break;
+                case FONT_TYPE_MONO_OUTLINE:    rdram_loading = 1; tile_offset = 0; break;
                 case FONT_TYPE_ALIASED:         rdram_loading = 2; tile_offset = 0; break;
-                case FONT_TYPE_ALIASED_OUTLINE: rdram_loading = 2; tile_offset = 1; break;
+                case FONT_TYPE_ALIASED_OUTLINE: rdram_loading = 2; tile_offset = 0; break;
                 case FONT_TYPE_BITMAP: switch (TEX_FORMAT_BITDEPTH(sprite_get_format(a->sprite))) {
                     case 4:     rdram_loading = 1; tile_offset = 0; break;
                     default:    rdram_loading = 2; tile_offset = 0; break;
@@ -447,7 +439,6 @@ int rdpq_font_render_paragraph(const rdpq_font_t *fnt, const rdpq_paragraph_char
                 ntile += tile_offset;
                 tile_offset ^= 4;
                 rdpq_load_tile(ntile, g->s, g->t, g->s+width, g->t+height);
-                ntile ^= (ntile & 1);
                 break;
             default:
                 assertf(0, "invalid rdram_loading value %d", rdram_loading);
