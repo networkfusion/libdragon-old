@@ -492,7 +492,7 @@ char* rdpq_debug_disasm_cc(uint64_t cc64)
             cc_rgb_suba[cc.cyc[1].rgb.suba], cc_rgb_subb[cc.cyc[1].rgb.subb], cc_rgb_mul[cc.cyc[1].rgb.mul], cc_rgb_add[cc.cyc[1].rgb.add],
             cc_alpha_addsub[cc.cyc[1].alpha.suba], cc_alpha_addsub[cc.cyc[1].alpha.subb], cc_alpha_mul[cc.cyc[1].alpha.mul], cc_alpha_addsub[cc.cyc[1].alpha.add]);
     }
-    return strdup(buf);
+    return strupr(strdup(buf));
 }
 
 /** @brief Multiplication factor to convert a number to fixed point with precision n */
