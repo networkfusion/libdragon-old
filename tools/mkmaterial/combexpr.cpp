@@ -119,6 +119,7 @@ uint64_t to_rdp_command(bool two_steps, int rgb_indices[8], int alpha_indices[8]
     command |= (uint64_t)alpha_indices[second+2] << 18;
     command |= (uint64_t)alpha_indices[second+3] << 0;
     if (two_steps) command |= 1ull<<63;
+    command |= 0x3Cull << 56;
     return command;
 }
 
@@ -373,6 +374,7 @@ struct CombinerExprFull {
         channels[RGB] = rgb;
         channels[ALPHA] = alpha;
         allocate_uniforms();
+        fix_two_steps();
     }
 
     // Validate the CombinerExpression. This should never throw, unless the code
@@ -388,37 +390,33 @@ struct CombinerExprFull {
         return channels[0].two_steps() || channels[1].two_steps();
     }
 
-    // Return the 64-bit RDP command for the combiner expression. Notice that
-    // technically this is the input to rdpq_mode_combiner (that is, the same
-    // value that is computed via macros RDPQ_COMBINER1/2), which is identical
-    // to the RDP command but misses the RDP command code (0x3C << 56).
+    // Return a string representation of the combiner expression
+    std::pair<std::string,std::string> to_string(void) const {
+        return { channels[RGB].to_string(), channels[ALPHA].to_string() };
+    }
+
+    // Return the slot indices for the combiner expression. The indices are
+    // returned as a pair of vectors, one for the RGB channel and one for the
+    // ALPHA channel.
+    // The indices are either 4 or 8 elements long, depending on whether the
+    // combiner expression requires one or two steps.
+    std::pair<std::vector<int>,std::vector<int>> slot_indices() const {
+        return { channels[RGB].slot_indices(), channels[ALPHA].slot_indices() };
+    }
+
+    // Return the 64-bit RDP command for the combiner expression.
     uint64_t rdp_command(void) const {
-        std::vector<int> indices[2];
-        bool two = two_steps();
+        auto [idx_rgb, idx_alpa] = slot_indices();
 
-        for (int i=0; i<2; i++) {
-            indices[i] = channels[i].slot_indices();
-            if (!channels[i].two_steps()) {
-                if (!two) {
-                    // 1 step combiner: duplicate indices into second step as well
-                    indices[i].insert(indices[i].end(), indices[i].begin(), indices[i].end());
-                } else {
-                    // 2 step combiner: fill in the second step with a passthrough
-                    if (i == 0) {
-                        indices[i].insert(indices[i].end(), {8, 8, 16, 0});
-                    } else {
-                        indices[i].insert(indices[i].end(), {7, 7, 7, 0});
-                    }
-                }
-            }
-
-            // If any index is -1, the command is invalid
-            for (auto idx : indices[i]) {
-                if (idx == -1) return 0;
-            }
+        // If the indices are 4 elements long, we need to duplicate them for the
+        // second step. This is the correct way to represent indices in the
+        // RDP combiner expression.
+        if (!two_steps()) {
+            idx_rgb.insert(idx_rgb.end(), idx_rgb.begin(), idx_rgb.end());
+            idx_alpa.insert(idx_alpa.end(), idx_alpa.begin(), idx_alpa.end());
         }
 
-        return ::combexpr::to_rdp_command(two, &indices[0][0], &indices[1][0]);
+        return ::combexpr::to_rdp_command(two_steps(), &idx_rgb[0], &idx_alpa[0]);
     }
 
     // Return a map of uniforms that need to be set for the combiner expression
@@ -534,6 +532,44 @@ private:
 
         // Now allocate uniforms for the RGB channel
         channels[RGB].allocate_uniforms();
+    }
+
+    // Make the combiner expression uniformly two steps if required
+    void fix_two_steps(void)
+    {
+        bool rgb2 = channels[RGB].two_steps();
+        bool alpha2 = channels[ALPHA].two_steps();
+        bool two = rgb2 || alpha2;
+
+        // Check if any slot uses tex1 or tex1: that would require two steps
+        if (!two) {
+            for (int ch=0; ch<2 && !two; ch++) {
+                for (int s=0; s<2 && !two; s++) {
+                    auto &step = channels[ch].step[s];
+                    for (int j=0; j<4; j++) {
+                        if (step.slot('a' + j) == "tex1" || step.slot('a' + j) == "tex1.a") {
+                            two = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Make sure both channels are two steps if two steps is required
+        if (two && !rgb2) {
+            channels[RGB].set(1, 'a', "0");
+            channels[RGB].set(1, 'b', "0");
+            channels[RGB].set(1, 'c', "0");
+            channels[RGB].set(1, 'd', "combined");
+        }
+        if (two && !alpha2) {
+            channels[ALPHA].set(1, 'a', "0");
+            channels[ALPHA].set(1, 'b', "0");
+            channels[ALPHA].set(1, 'c', "0");
+            channels[ALPHA].set(1, 'd', "combined");
+        }
+
     }
 };
 

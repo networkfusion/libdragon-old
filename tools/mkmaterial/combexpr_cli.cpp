@@ -1,11 +1,15 @@
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
+#include "json.hpp"
 #include "combexpr.cpp"
+
+using json = nlohmann::json;
 
 extern "C" char* rdpq_debug_disasm_cc(uint64_t cc64);
 
 int flag_verbose = 0;
+bool flag_json = false;
 
 int selftest(void)
 {
@@ -85,6 +89,28 @@ void emit_rdpq_code(combexpr::CombinerExprFull& expr, const std::string& rgb_exp
     free(disasm);
 }
 
+void emit_json(combexpr::CombinerExprFull& expr, const std::string& rgb_expr, const std::string& alpha_expr)
+{
+    uint64_t cmd_cc = expr.rdp_command();
+    auto [rgb_str, alpha_str] = expr.to_string();
+    auto [rgb_indices, alpha_indices] = expr.slot_indices();
+    json jout;
+
+    jout["input"]["rgb"] = rgb_expr;
+    jout["input"]["alpha"] = alpha_expr;
+    jout["output"]["rgb"] = rgb_str;
+    jout["output"]["alpha"] = alpha_str;
+    jout["rdp_command"] = { (uint32_t)(cmd_cc >> 32), (uint32_t)cmd_cc };
+    for (auto [id, value] : expr.rdp_uniforms()) {
+        std::string name = combexpr::uniform_name(id);
+        jout["uniforms"][name] = value;
+    }
+    jout["steps"] = expr.two_steps() ? 2 : 1;
+    jout["slots"]["rgb"] = rgb_indices;
+    jout["slots"]["alpha"] = alpha_indices;
+
+    std::cout << jout.dump(4) << std::endl;
+}
 
 void usage(const char *name)
 {
@@ -93,6 +119,7 @@ void usage(const char *name)
     fprintf(stderr, "Usage: %s <rgb_expr> [<alpha_expr>]\n", name);
     fprintf(stderr, "\n");
     fprintf(stderr, "Command-line flags:\n");
+    fprintf(stderr, "   -j/--json                 Output JSON instead of C code (for machine parsing)\n");
     fprintf(stderr, "   -v/--verbose              Verbose output\n");
     fprintf(stderr, "   -h/--help                 Show this help\n");
     fprintf(stderr, "   --selftest                Run internal tests and exit\n");
@@ -109,6 +136,8 @@ int main(int argc, char *argv[]) {
             return 0;
         } else if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--verbose")) {
             flag_verbose++;
+        } else if (!strcmp(argv[i], "-j") || !strcmp(argv[i], "--json")) {
+            flag_json = true;
         } else if (!strcmp(argv[i], "--selftest")) {
             return selftest();
         } else {
@@ -141,7 +170,11 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    emit_rdpq_code(expr, rgb_expr, alpha_expr);
+    if (flag_json) {
+        emit_json(expr, rgb_expr, alpha_expr);
+    } else {
+        emit_rdpq_code(expr, rgb_expr, alpha_expr);
+    }
 
     return 0;
 }
