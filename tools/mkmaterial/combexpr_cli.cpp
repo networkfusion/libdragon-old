@@ -1,4 +1,3 @@
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
 #include "json.hpp"
@@ -72,7 +71,7 @@ void emit_rdpq_code(combexpr::CombinerExprFull& expr, const std::string& rgb_exp
 
     for (auto &[name, value] : expr.rdp_uniforms()) {
         if (name == combexpr::UNIFORM_K4K5) {
-            printf("rdpq_set_yuv_parms(0, 0, 0, %d, %d);\n", value >> 8, value & 0xFF);
+            printf("rdpq_set_yuv_parms(0,0,0,0,%d,%d);\n", value >> 8, value & 0xFF);
         } else if (name == combexpr::UNIFORM_PRIM_LOD_FRAC) {
             printf("rdpq_set_prim_lod_frac(%d);\n", value);
         } else if (name == combexpr::UNIFORM_ENV) {
