@@ -264,8 +264,9 @@ void stage1(void)
     entropy_init();
     usb_init();
     debugf("Libdragon IPL3");
-    
+
     entropy_add(C0_COUNT());
+    entropy_add(*DP_CLOCK);    
     C0_WRITE_CAUSE(0);
     C0_WRITE_COUNT(0);
     C0_WRITE_COMPARE(0);
