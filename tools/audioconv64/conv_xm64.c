@@ -20,6 +20,8 @@
 
 #include "mixer.h"
 
+bool flag_xm_8bit = false;
+
 // Loops made by an odd number of bytes and shorter than this length are
 // duplicated to prevent frequency changes during playback. See below for more
 // information.
@@ -65,6 +67,17 @@ int xm_convert(const char *infn, const char *outfn) {
 		for (int j=0;j<ins->num_samples;j++) {
 			xm_sample_t *s = &ins->samples[j];
 			int bps = s->bits / 8;
+
+			if (flag_xm_8bit && bps == 2) {
+				// Convert 16-bit samples to 8-bit
+				int8_t *data8 = malloc(s->length);
+				for (int k=0;k<s->length;k++)
+					data8[k] = s->data16[k] >> 8;
+				memcpy(s->data8, data8, s->length);
+				free(data8);
+				s->bits = 8;
+				bps = 1;
+			}
 
 			uint32_t length = s->length * bps;
 			uint32_t loop_length = s->loop_length * bps;
