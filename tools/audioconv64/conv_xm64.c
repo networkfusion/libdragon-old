@@ -149,6 +149,12 @@ int xm_convert(const char *infn, const char *outfn) {
 	int num_orders = xm_get_module_length(ctx);
 	bool played_orders[PATTERN_ORDER_TABLE_LENGTH] = {0};
 
+	// Keep information of which samples in which instruments are used
+	bool** used_samples = calloc(ctx->module.num_instruments, sizeof(bool*));
+	for (int i=0; i<ctx->module.num_instruments; i++)
+		if (ctx->module.instruments[i].num_samples > 0)
+			used_samples[i] = calloc(ctx->module.instruments[i].num_samples, sizeof(bool));
+
 	while (1) {
 		do {
 			xm_tick(ctx);
@@ -164,6 +170,14 @@ int xm_convert(const char *infn, const char *outfn) {
 				xm_channel_context_t *ch = &ctx->channels[i];
 
 				if (ch->instrument && ch->sample) {
+					// Mark the sample as used. Notice that sometimes ch->sample
+					// is not part of the current ch->instrument->samples array
+					// (the instrument can change before key on).
+					bool *used_samp_inst = used_samples[ch->instrument - ctx->module.instruments];
+					int smp_idx = ch->sample - ch->instrument->samples;
+					if (smp_idx >= 0 && smp_idx < ch->instrument->num_samples)
+						used_samp_inst[smp_idx] = true;
+
 					// Number of samples for this waveform at this playback frequency
 					// (capped at the waveform length)
 					int n = ceilf(ch->step * nsamples);
@@ -218,6 +232,23 @@ int xm_convert(const char *infn, const char *outfn) {
 		ctx->ctx_size_stream_sample_buf[i] = ch_buf[i];
 		sam_size += ch_buf[i];
 	}
+
+	// Free unused samples, to save ROM space. We only remove the last unused samples
+	// to avoid renumbering the samples, which would require updating all the pattern
+	// data. This is OK most of the times since 99% of XM files only has 1 sample per
+	// instrument anyway.
+	for (int i=0; i<ctx->module.num_instruments; i++) {
+		xm_instrument_t *ins = &ctx->module.instruments[i];
+		while (ins->num_samples > 0 && !used_samples[i][ins->num_samples-1]) {
+			if (flag_verbose) fprintf(stderr, "  * removing unused sample %d from instrument %d\n", ins->num_samples-1, i+1);
+			free(ins->samples[ins->num_samples-1].data8);
+			ins->samples[ins->num_samples-1].data8 = NULL;
+			memset(&ins->samples[ins->num_samples-1], 0, sizeof(xm_sample_t));
+			ins->num_samples--;
+		}
+		free(used_samples[i]);
+	}
+	free(used_samples);
 
 	FILE *out = fopen(outfn, "wb");
 	if (!out) fatal("cannot create: %s", outfn);
