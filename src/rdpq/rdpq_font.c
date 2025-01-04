@@ -42,7 +42,6 @@ static void setup_render_mode(int font_type, tex_format_t fmt)
             rdpq_set_mode_standard();
             rdpq_mode_combiner(RDPQ_COMBINER1((0,0,0,PRIM), (TEX0,0,PRIM,0)));
             rdpq_mode_alphacompare(1);
-            rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
         rdpq_mode_end();
         break;
     case FONT_TYPE_MONO:
@@ -69,7 +68,7 @@ static void setup_render_mode(int font_type, tex_format_t fmt)
         // to turn on AA for this to work (for unknown reasons).
         rdpq_mode_begin();
             rdpq_set_mode_standard();
-            rdpq_mode_combiner(RDPQ_COMBINER1((PRIM,ENV,TEX0,ENV), (0,0,0,TEX0)));
+            rdpq_mode_combiner(RDPQ_COMBINER1((PRIM,ENV,TEX0,ENV), (TEX0,0,PRIM,0)));
             rdpq_mode_antialias(AA_REDUCED);
             rdpq_mode_tlut(TLUT_IA16);
         rdpq_mode_end();
@@ -79,8 +78,7 @@ static void setup_render_mode(int font_type, tex_format_t fmt)
         // Atlases are IA8, where I modulates between the fill color and the outline color.
         rdpq_mode_begin();
             rdpq_set_mode_standard();
-            rdpq_mode_combiner(RDPQ_COMBINER1((PRIM,ENV,TEX0,ENV), (0,0,0,TEX0)));
-            rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+            rdpq_mode_combiner(RDPQ_COMBINER1((PRIM,ENV,TEX0,ENV), (TEX0,0,PRIM,0)));
         rdpq_mode_end();
         rdpq_change_other_modes_raw(SOM_BLALPHA_MASK, SOM_BLALPHA_CVG_TIMES_CC);
         break;
@@ -90,14 +88,14 @@ static void setup_render_mode(int font_type, tex_format_t fmt)
         case FMT_CI4:
         case FMT_CI8:
             rdpq_mode_begin();
-                rdpq_set_mode_copy(true);
                 rdpq_mode_alphacompare(1);
+                rdpq_mode_combiner(RDPQ_COMBINER1((TEX0,0,PRIM,0), (TEX0,0,PRIM,0)));
             rdpq_mode_end();
             break;
         case FMT_RGBA32:
             rdpq_mode_begin();
                 rdpq_set_mode_standard();
-                rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+                rdpq_mode_combiner(RDPQ_COMBINER1((TEX0,0,PRIM,0), (TEX0,0,PRIM,0)));
             rdpq_mode_end();
             break;
         default:
@@ -110,7 +108,7 @@ static void setup_render_mode(int font_type, tex_format_t fmt)
     }
 }
 
-static void apply_style(int font_type, style_t *s)
+static void apply_style(int font_type, style_t *s, tex_format_t fmt)
 {
     switch (font_type) {
     case FONT_TYPE_MONO_OUTLINE:
@@ -119,14 +117,36 @@ static void apply_style(int font_type, style_t *s)
         // fallthrough
     case FONT_TYPE_ALIASED:
     case FONT_TYPE_MONO:
-        rdpq_set_prim_color(s->color);
-        break;
     case FONT_TYPE_BITMAP:
+        rdpq_set_prim_color(s->color);
         break;
     default:
         assert(0);
     }
+    //Blender setup
+    switch (font_type) {
+        case FONT_TYPE_MONO:
+            if(s->color.a != 255) {
+                rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+            } else {
+                rdpq_mode_blender(0);
+            }
+            break;
 
+        case FONT_TYPE_MONO_OUTLINE:
+        case FONT_TYPE_ALIASED_OUTLINE:
+        case FONT_TYPE_ALIASED:
+            rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+            break;
+        
+        case FONT_TYPE_BITMAP:
+            if(s->color.a != 255 || fmt == FMT_RGBA32) {
+                rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+            } else {
+                rdpq_mode_blender(0);
+            }
+            break;
+    }
     if (s->custom)
         s->custom(s->custom_arg);
 }
@@ -390,6 +410,7 @@ int rdpq_font_render_paragraph(const rdpq_font_t *fnt, const rdpq_paragraph_char
 
     const rdpq_paragraph_char_t *ch = chars;
     while (ch->font_id == font_id) {
+        bool force_apply_style = false;
         const glyph_t *g = &fnt->glyphs[ch->glyph];
         if (UNLIKELY(g->natlas != cur_atlas)) {
             atlas_t *a = &fnt->atlases[g->natlas];
@@ -410,11 +431,12 @@ int rdpq_font_render_paragraph(const rdpq_font_t *fnt, const rdpq_paragraph_char
                 rdram_loading = 0;
             }
             cur_atlas = g->natlas;
+            force_apply_style = true;
         }
-        if (UNLIKELY(ch->style_id != cur_style)) {
+        if (force_apply_style || UNLIKELY(ch->style_id != cur_style)) {
             assertf(ch->style_id < fnt->num_styles,
                  "style %d not defined in this font", ch->style_id);
-            apply_style(fnt->flags & FONT_FLAG_TYPE_MASK, &fnt->styles[ch->style_id]);
+            apply_style(fnt->flags & FONT_FLAG_TYPE_MASK, &fnt->styles[ch->style_id], sprite_get_format(fnt->atlases[g->natlas].sprite));
             cur_style = ch->style_id;
         }
 
