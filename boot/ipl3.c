@@ -321,6 +321,12 @@ void stage1(void)
             }
         }
 
+        // If this is a warm boot, try to add entropy stored by the previous IPL3
+        // run. This is just a best-effort; if it was destroyed, we'll just fetch
+        // whatever is there.
+        if (ipl2_resetType == 1)
+            entropy_add(*RDRAM_ENTROPY_STATE);
+
         // Clear memory. Skip the first 0x400 bytes of RAM because it
         // historically contains some boot flags that some existing code
         // might expect to stay there.
