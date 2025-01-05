@@ -36,15 +36,15 @@ int selftest(void)
     };
 
     check("tex0", "(1,0,0,tex0)");
-    check("tex0 + tex1", "(1,0,tex1,tex0)");
-    check("tex0 * shade + tex1", "(shade,0,tex0,tex1)");
-    check("tex0 + tex1 * shade", "(shade,0,tex1,tex0)");
-    check("tex0 + tex1 * (shade - env)", "(shade,env,tex1,tex0)");
-    check("tex0 + tex1 * (shade + env)", "(1,0,env,shade),(tex1,0,combined,tex0)");
+    check("tex0 + tex1", "(1,0,tex1,tex0),(0,0,0,combined)");
+    check("tex0 * shade + tex1", "(shade,0,tex0,tex1),(0,0,0,combined)");
+    check("tex0 + tex1 * shade", "(shade,0,tex1,tex0),(0,0,0,combined)");
+    check("tex0 + tex1 * (shade - env)", "(shade,env,tex1,tex0),(0,0,0,combined)");
+    check("tex0 + tex1 * (shade + env)", "(1,0,env,shade),(combined,0,tex1,tex0)");
     check("(prim - env) * tex0 + env", "(prim,env,tex0,env)");
     check("tex0 * 0.3", "(env,0,tex0,0)");
     check("tex0 * .3", "(env,0,tex0,0)");
-    check("tex0 * prim * env", "(prim,0,tex0,0),(env,0,combined,0)");
+    check("tex0 * prim * env", "(prim,0,tex0,0),(combined,0,env,0)");
     check("prim * env * env * shade", "<ERROR>");
     check("(prim - env) * tex0 + env * k5", "(env,0,k5,0),(prim,env,tex0,combined)");
     check("(prim - env) * tex0 + k5 * env", "(env,0,k5,0),(prim,env,tex0,combined)");
@@ -52,7 +52,7 @@ int selftest(void)
     check("noise * 0.2", "(noise,0,k5,0)");
     check("tex0 + noise", "(noise,0,k5,tex0)");
     check("lod_frac", "(1,0,lod_frac,0)");
-    check("0.5 * (tex0 + noise)", "(noise,0,k5,tex0),(env,0,combined,0)");
+    check("0.5 * (tex0 + noise)", "(noise,0,k5,tex0),(combined,0,env,0)");
     check("tex0.a * 0.4", "(env,0,tex0.a,0)");
     check("0.5 - tex0.a", "(1,0,tex0.a,0),(env,combined,k5,0)");
     check("tex0.a - 0.5", "(1,0,tex0.a,0),(combined,k4,k5,0)");
