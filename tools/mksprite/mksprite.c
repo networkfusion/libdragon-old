@@ -228,7 +228,6 @@ typedef struct {
 
 typedef struct {
     const char *infn;       // Input file name
-    const char *outfn;      // Output file name
     FILE *out;              // Output file
     image_t images[MAX_IMAGES]; // Pixel images (one per lod level).
     palette_t palette;      // Palette (if any)
@@ -1465,13 +1464,13 @@ bool spritemaker_write(spritemaker_t *spr) {
     return true;
 }
 
-void spritemaker_write_pngs(spritemaker_t *spr) {
+void spritemaker_write_pngs(spritemaker_t *spr, const char *outfn) {
     for (int i=0; i<MAX_IMAGES; i++) {
         if (spr->images[i].image == NULL)
             continue;
         char lodext[16]; sprintf(lodext, ".%d.png", i);
         char debugfn[2048];
-        strcpy(debugfn, spr->outfn);
+        strcpy(debugfn, outfn);
         strcpy(strrchr(debugfn, '.'), lodext);
 
         image_t *img = &spr->images[i];
@@ -1512,6 +1511,7 @@ void spritemaker_free(spritemaker_t *spr) {
 
 int convert(const char *infn, const char *outfn, const parms_t *pm, int compression) {
     FILE *out = tmpfile();
+    bool out_is_stdout = (strstr(outfn, "(stdout)") != NULL);
 
     if (flag_verbose)
         fprintf(stderr, "Converting: %s -> %s [fmt=%s tiles=%d,%d mipmap=%s dither=%s]\n",
@@ -1657,8 +1657,8 @@ int convert(const char *infn, const char *outfn, const parms_t *pm, int compress
         goto error;
 
     // Write debug files
-    if (flag_debug)
-        spritemaker_write_pngs(&spr);
+    if (flag_debug && !out_is_stdout)
+        spritemaker_write_pngs(&spr, outfn);
 
     spritemaker_free(&spr);
 
@@ -1672,7 +1672,7 @@ int convert(const char *infn, const char *outfn, const parms_t *pm, int compress
     // Compress the data and store it into output file
     // This is a nop if compression is disabled, but at least
     // we don't have two different code paths.
-    if (strstr(outfn, "(stdout)")) {
+    if (out_is_stdout) {
         out = stdout;
     } else {
         out = fopen(outfn, "wb");
