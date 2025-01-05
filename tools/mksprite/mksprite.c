@@ -1557,13 +1557,13 @@ int convert(const char *infn, const char *outfn, const parms_t *pm, int compress
     if (spr.images[0].fmt == FMT_IHQ) {
         if (!spritemaker_convert_ihq(&spr))
             goto error;
-        // Compute mipmaps for SHQ
+        // Compute mipmaps for IHQ
         mipmap_algo = MIPMAP_ALGO_BOX;
     } else if (spr.images[0].fmt == FMT_SHQ) {
         spr.out_flags |= 0x40;
         if (!spritemaker_convert_shq(&spr))
             goto error;
-        // Compute mipmaps for SHQ
+        // Mipmaps not supported for SHQ
         if (mipmap_algo != MIPMAP_ALGO_NONE) {
             fprintf(stderr, "WARNiNG: mipmap generation is not supported for SHQ mode\n");
             mipmap_algo = MIPMAP_ALGO_NONE;
