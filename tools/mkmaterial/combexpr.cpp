@@ -375,6 +375,7 @@ struct CombinerExprFull {
         channels[ALPHA] = alpha;
         allocate_uniforms();
         fix_two_steps();
+        fix_c_combined();
     }
 
     // Validate the CombinerExpression. This should never throw, unless the code
@@ -570,6 +571,23 @@ private:
             channels[ALPHA].set(1, 'd', "combined");
         }
 
+    }
+
+    void fix_c_combined(void)
+    {
+        if (!two_steps())
+            return;
+
+        // As a special case, we want to avoid using COMBINED in the C slot,
+        // because that can more often cause overflow of the intermediate
+        // calculation. So we try to move it to the A slot if possible.
+        // Not sure if this last-time patch is the best solution, but it
+        // seems to work well in practice.
+        for (int ch=0; ch<2; ch++) {
+            auto& step = channels[ch].step[1];
+            if (step.slot('c') == "combined" && step.slot('b') == "0")
+                std::swap(step.slot('c'), step.slot('a'));
+        }
     }
 };
 
