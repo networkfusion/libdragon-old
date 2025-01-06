@@ -343,6 +343,10 @@ static const char* __get_exception_name(exception_t *ex)
 				    ((reg_ft & 0x7F800000) == 0 && (reg_ft & 0x007FFFFF) != 0))
 					return "Invalid floating point value (denormal)";
 
+				// Check for negative square roots
+				if ((opcode & 0x3F) == 0x04 && (int32_t)reg_fs < 0)
+					return "Floating point negative square root";
+
 				break;
 			case 0x11: // double precision
 				uint64_t reg_fs64 = ex->regs->fpr[fs];
@@ -357,6 +361,11 @@ static const char* __get_exception_name(exception_t *ex)
 				if (((reg_fs64 & 0x7FF0000000000000ull) == 0 && (reg_fs64 & 0x000FFFFFFFFFFFFFull) != 0) ||
 				    ((reg_ft64 & 0x7FF0000000000000ull) == 0 && (reg_ft64 & 0x000FFFFFFFFFFFFFull) != 0))
 					return "Invalid floating point value (denormal)";
+
+				// Check for negative square roots
+				if ((opcode & 0x3F) == 0x04 && (int64_t)reg_fs64 < 0)
+					return "Floating point negative square root";
+
 				break;
 			}
 		}
