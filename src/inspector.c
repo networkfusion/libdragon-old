@@ -97,7 +97,7 @@ static void mips_disasm(uint32_t *ptr, char *out, int n) {
 		"edsll", "*", "edsrl", "edsra", "edsll32", "*", "edsrl32", "edsra32", 
 	};
 	static const char *fpu_ops[64]= {
-        "radd", "rsub", "rmul", "rdiv", "rsqrt", "sabs", "smov", "sneg",
+        "radd", "rsub", "rmul", "rdiv", "ssqrt", "sabs", "smov", "sneg",
         "sround.l", "strunc.l", "sceil.l", "sfloor.l", "sround.w", "strunc.w", "sceil.w", "sfloor.w",
         "*", "*", "*", "*", "*", "*", "*", "*",
         "*", "*", "*", "*", "*", "*", "*", "*",
