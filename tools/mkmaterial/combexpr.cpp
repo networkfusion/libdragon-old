@@ -208,6 +208,14 @@ struct CombinerExpr {
     CombinerStep step[2]{ { ch, 0 }, { ch, 1 } };
     std::vector<internal::Uniform> uniforms{internal::Uniform::create_uniforms(ch)};
 
+    CombinerExpr(CombinerChannel ch) : ch(ch) {}
+    CombinerExpr(CombinerChannel ch, std::string a, std::string b, std::string c, std::string d) : CombinerExpr(ch) {
+        set(0, 'a', a);
+        set(0, 'b', b);
+        set(0, 'c', c);
+        set(0, 'd', d);
+    }
+
     std::string to_string() const {
         std::string ret = step[0].to_string();
         if (step[1])
@@ -1079,7 +1087,7 @@ CombinerExprFull parse(const std::string& expr_rgb, const std::string& expr_alph
     // to provide separate error messages in case of failure.
     Matcher rgb_matcher(root_rgb);
     Matcher alpha_matcher(root_alpha);    
-    CombinerExpr rgb{}, alpha{};
+    CombinerExpr rgb{RGB}, alpha{ALPHA};
 
     try {
         rgb = rgb_matcher.matchCombiner(RGB);
