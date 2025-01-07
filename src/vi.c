@@ -56,8 +56,8 @@ static const vi_preset_t vi_presets[3] = {
     },
     [TV_MPAL] = {
         .clock = 48628322,
-        .vi_h_total = VI_H_TOTAL_SET(0b00100, 772.5),
-        .vi_h_total_leap = VI_H_TOTAL_LEAP_SET(774.5, 774.75),
+        .vi_h_total = VI_H_TOTAL_SET(0b00100, 772.75),
+        .vi_h_total_leap = VI_H_TOTAL_LEAP_SET(766, 766),
         .vi_v_total = VI_V_TOTAL_SET(526),
         .vi_burst = VI_BURST_SET(70, 5, 30, 57),
         .vi_v_burst = VI_V_BURST_SET(14, 516),
