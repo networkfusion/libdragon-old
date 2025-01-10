@@ -33,7 +33,7 @@
 #include <malloc.h>
 #include <stdalign.h>
 #include "wav64.h"
-#include "wav64internal.h"
+#include "wav64_internal.h"
 #include "samplebuffer.h"
 #include "debug.h"
 #include "dragonfs.h"
