@@ -39,6 +39,7 @@ void fatal(const char *str, ...) {
 	va_list va;
 	va_start(va, str);
 	vfprintf(stderr, str, va);
+	fprintf(stderr, "\n");
 	va_end(va);
 	exit(1);
 }
