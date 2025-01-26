@@ -15,7 +15,8 @@ jobs:
       matrix:
         include: [
           #{ host-os: ubuntu-latest },
-          { host-os: macos-15 }
+          #{ host-os: macos-15 }
+          { host-os: ubuntu-24.04-arm }
         ]
     runs-on: ${{ matrix.host-os }}
 
@@ -56,7 +57,7 @@ jobs:
 
 
       - name: Install docker for macos
-        if: ${{ matrix.host-os == 'macos-14' }}
+        if: ${{ matrix.host-os == 'macos-15' }}
         run: |
           brew install --cask docker
           # sudo ln -s ~/Library/Containers/com.docker.docker/Data/docker.raw.sock /var/run/docker.sock
