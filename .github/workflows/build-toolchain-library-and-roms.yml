@@ -53,7 +53,6 @@ jobs:
                 steps.vars.outputs.default_remote
             }}
           head: ${{ github.sha }}
-          
 
       # Build the toolchain if toolchain files changed w.r.t target and we can
       # use from registry o/w
