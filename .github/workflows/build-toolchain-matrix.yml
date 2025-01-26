@@ -1,4 +1,4 @@
-name: Build-Toolchain
+name: Build-Native-Toolchains
 
 # This workflow will build the libdragon N64 GCC toolchain to keep it up-to-date.
 on:
