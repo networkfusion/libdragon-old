@@ -15,8 +15,7 @@ jobs:
       matrix:
         include: [
           #{ host-os: ubuntu-latest },
-          #{ host-os: macos-15 }
-          { host-os: ubuntu-24.04-arm }
+          { host-os: ubuntu-24.04-arm },
         ]
     runs-on: ${{ matrix.host-os }}
 
@@ -54,16 +53,6 @@ jobs:
                 steps.vars.outputs.default_remote
             }}
           head: ${{ github.sha }}
-
-
-      - name: Install docker for macos
-        if: ${{ matrix.host-os == 'macos-15' }}
-        run: |
-          brew install --cask docker
-          # sudo ln -s ~/Library/Containers/com.docker.docker/Data/docker.raw.sock /var/run/docker.sock
-          # DOCKER_HOST=unix:///var/run/docker.sock docker ps # test that it works using linked socket file
-          docker --version
-        continue-on-error: false
           
 
       # Build the toolchain if toolchain files changed w.r.t target and we can
