@@ -29,8 +29,9 @@ jobs:
         include: [
           #{ host-os: ubuntu-20.04, target-platform: Windows-x86_64, host: x86_64-w64-mingw32, makefile-version: 4.4 },
           #{ host-os: ubuntu-20.04, target-platform: Linux-x86_64, host: '', makefile-version: '' },
-          { host-os: ubuntu-22.04-arm, target-platform: Linux-arm64, host: '', makefile-version: '' }
-          #{ host-os: macos-13, target-platform: Linux-arm64, host: '', makefile-version: '' }
+          { host-os: ubuntu-22.04-arm, target-platform: '', host: '', makefile-version: '' }, #Linux-arm64
+          #{ host-os: macos-13, target-platform: '', host: '', makefile-version: '' }, # X86_64
+          #{ host-os: macos-14, target-platform: '', host: '', makefile-version: '' }, # arm64
         ]
     runs-on: ${{ matrix.host-os }}
 
@@ -39,15 +40,15 @@ jobs:
 
     steps:
 
-      - name: Install native linux system build dependencies
-        if: ${{ matrix.host-os != 'macos-13' }}
-        run: |
-          sudo apt-get install libmpfr-dev
-          sudo apt-get install texinfo
-          sudo apt-get install libmpc-dev
-          sudo apt-get install squashfs-tools
-          # If there are other dependencies, we should add them here and make sure the documentation is updated!
-        continue-on-error: true
+      # - name: Install native linux system build dependencies
+      #   if: ${{ matrix.host-os != 'macos-13' }}
+      #   run: |
+      #     sudo apt-get install libmpfr-dev
+      #     sudo apt-get install texinfo
+      #     sudo apt-get install libmpc-dev
+      #     sudo apt-get install squashfs-tools
+      #     # If there are other dependencies, we should add them here and make sure the documentation is updated!
+      #   continue-on-error: true
 
       - name: Install x-compile system build dependencies
         if: ${{ matrix.target-platform == 'Windows-x86_64' }}
