@@ -11,7 +11,14 @@ concurrency:
 
 jobs:
   Toolchain-Library-And-Examples:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include: [
+          { host-os: ubuntu-latest },
+          { host-os: ubuntu-22.04-arm },
+        ]
+    runs-on: ${{ matrix.host-os }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -52,6 +59,7 @@ jobs:
       - name: Set up Docker Build
         if: ${{ steps.path_diff.outputs.changed == 1 }}
         uses: docker/setup-buildx-action@v3
+        continue-on-error: false
 
       - name: Docker meta
         if: ${{ steps.path_diff.outputs.changed == 1 }}
@@ -73,7 +81,7 @@ jobs:
 
       - name: Build and push image
         if: ${{ steps.path_diff.outputs.changed == 1}}
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           # Only push image if this is a push event. Otherwise it will fail because
           # of permission issues on PRs. Also see https://github.com/DragonMinded/libdragon/issues/230
@@ -91,7 +99,7 @@ jobs:
       # cached, it should not take long to build.
       - name: Load image for libdragon build
         if: ${{ steps.path_diff.outputs.changed == 1}}
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           # Do not push the image yet, we also want to make sure libdragon builds
           # with the fresh image.
@@ -113,6 +121,7 @@ jobs:
           ./build.sh
 
       - name: "Upload built ROMs to artifacts"
+        if: ${{ matrix.host-os == 'ubuntu-latest' }} # don't upload duplicate artifacts from other builds.
         uses: actions/upload-artifact@v4
         with:
           name: roms
@@ -125,8 +134,9 @@ jobs:
       # build with this freshly built image.
       - name: Push latest image
         if: ${{ steps.path_diff.outputs.changed == 1 && github.ref == steps.vars.outputs.default_ref }}
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ghcr.io/${{ steps.vars.outputs.repository_name }}:latest
           cache-from: type=gha
